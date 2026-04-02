@@ -1,8 +1,34 @@
-# Team xxxx
+# Team MTA
 
 ## Team Members
 
-- xxxx
+- Alarafat Hossain (@hzkira)
+- Carlos Payvon
+- Dylan Stubbs
+- Heba Saleh
+
+## Sprint Planning
+
+### Goals
+
+- Create a website framework/skeleton to allow other goals to progress. 
+- Create a secure login interface connected to a database
+- Design a uniform style throughout the website
+- Allow users to save information in a planner
+- Allow the planner to have an option to send notifications or reminder
+- Allow users to interact with a map.
+- Make the map have the ability to take addresses and give directions.
+- Create a way for users to determine the weather on a given date and time.
+- Create a way for the website to give suggestion based on the weather. 
+- Create a way to display events going on a given date or time.
+
+### Assigned Tasks
+
+- Alarafat : Responsible for map api
+- Carlos   : Responsible for frontend development
+- Dylan    : Responsible for weather api
+- Heba     : Responsible for login/database
+
 
 ## How to Initialize and Run the App
 

@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 Rails.application.routes.draw do
-  get 'dashboard/inde'
+  get 'dashboard/index'
   devise_for :users
 
   devise_scope :user do

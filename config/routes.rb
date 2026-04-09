@@ -12,4 +12,6 @@ Rails.application.routes.draw do
   # root "posts#index"
 
   root "maps#index"
+  root 'home#index'
+  get '/next', to: 'home#next'
 end

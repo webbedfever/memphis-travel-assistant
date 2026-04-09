@@ -1,7 +1,9 @@
 # frozen_string_literal: true
 
 class ApplicationController < ActionController::Base
-  def after_sign_in(resource)
-    '/dashboard'
+  helper_method :guest?
+
+  def guest?
+    !user_signed_in?
   end
 end

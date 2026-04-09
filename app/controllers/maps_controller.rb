@@ -15,4 +15,9 @@ class MapsController < ApplicationController
         result = MapService.directions(params[:origin], params[:destination])
         render json: result
     end
+
+    def events
+        events = TicketmasterService.events_in_memphis
+        render json: events
+    end
 end

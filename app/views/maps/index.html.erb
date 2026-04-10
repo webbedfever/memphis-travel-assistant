@@ -1,0 +1,72 @@
+<input id="origin" placeholder="Start location">
+<input id="destination" placeholder="Destination">
+<button onclick="getDirections()">Get Directions</button>
+
+<div id="map" style="height: 500px;"></div>
+
+<script>
+let map;
+let directionsService;
+let directionsRenderer;
+let originAutocomplete;
+let destinationAutocomplete;
+
+const memphisBounds = {
+    north: 35.25,
+    south: 34.98,
+    west: -90.20,
+    east: -89.75,
+};
+
+function initMap() {
+    map = new google.maps.Map(document.getElementById("map"), {
+        center: { lat: 35.1495, lng: -90.0490 },
+        zoom: 12,
+        restriction: {
+            latLngBounds: memphisBounds,
+            strictBounds: true,
+        }
+    });
+
+    directionsService = new google.maps.DirectionsService();
+    directionsRenderer = new google.maps.DirectionsRenderer();
+    directionsRenderer.setMap(map);
+
+    const options = {
+        bounds: memphisBounds,
+        strictBounds: true,
+    };
+
+    originAutocomplete = new google.maps.places.Autocomplete(
+        document.getElementById("origin"),
+        options
+    );
+
+    destinationAutocomplete = new google.maps.places.Autocomplete(
+        document.getElementById("destination"),
+        options
+    );
+}
+
+function getDirections() {
+    const origin = document.getElementById("origin").value;
+    const destination = document.getElementById("destination").value;
+
+    directionsService.route({
+        origin: origin,
+        destination: destination,
+        travelMode: "DRIVING",
+    }, (result, status) => {
+        if (status === "OK") {
+        directionsRenderer.setDirections(result);
+        } 
+        else {
+            alert("Directions failed: " + status);
+        }
+    });
+}
+</script>
+
+<script async
+src="https://maps.googleapis.com/maps/api/js?key=REDACTED_API_KEY&libraries=places&callback=initMap">
+</script>

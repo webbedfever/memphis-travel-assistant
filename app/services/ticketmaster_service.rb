@@ -8,7 +8,7 @@ class TicketmasterService
 
     def self.events_in_memphis(start_date = nil, end_date = nil, classification = nil)
         params = {
-            apikey: 'REDACTED_API_KEY',
+            apikey: ENV['TICKETMASTER_API_KEY'],
             latlong: "35.1495,-90.0490",
             radius: 100,
             unit: "miles",

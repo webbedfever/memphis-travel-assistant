@@ -6,7 +6,6 @@
 
 <input type="date" id="startDate">
 <input type="date" id="endDate">
-<button onclick="loadEvents()">Filter Events</button>
 
 <select id="classification">
     <option value="">All Events</option>
@@ -17,10 +16,24 @@
     <option value="Miscellaneous">Misc</option>
 </select>
 
-<button onclick="loadEvents()">Apply Filters</button>
+<input type="datetime-local" id="timeFilter">
+
+<button onclick="applyFilters()">Apply Filters</button>
+
+<select id="placeType">
+    <option value="restaurant">Restaurants</option>
+    <option value="cafe">Cafes</option>
+    <option value="bar">Bars</option>
+    <option value="tourist_attraction">Attractions</option>
+    <option value="museum">Museums</option>
+    <option value="park">Parks</option>
+    <option value="store">Stores</option>
+</select>
+
 
 <script>
 let markers = [];
+let placeMarkers = [];
 let map;
 let directionsService;
 let directionsRenderer;
@@ -34,13 +47,17 @@ const memphisBounds = {
     east: -89.8,
 };
 
+function clearMarkers(list) {
+    list.forEach(m => m.setMap(null));
+}
+
 function groupByVenue(events) {
     const groups = {};
 
     events.forEach(event => {
         if (!event.lat || !event.lng) return;
 
-        const key = `${event.lat},${event.lng}`;
+        const key = `${parseFloat(event.lat).toFixed(4)},${parseFloat(event.lng).toFixed(4)}`;
 
         if (!groups[key]) {
             groups[key] = {
@@ -57,16 +74,35 @@ function groupByVenue(events) {
     return Object.values(groups);
 }
 
-async function loadEvents() {
-    markers.forEach(marker => marker.setMap(null));
+function filterEventsByTime(events, selectedTime) {
+    if (!selectedTime) return events;
+
+    const t = new Date(selectedTime);
+
+    return events.filter(e => {
+        if (!e.date) return false;
+        return new Date(e.date) >= t;
+    });
+}
+
+function filterOpenPlaces(places) {
+    return places.filter(p => p.open_now === true);
+}
+
+async function applyFilters() {
+    const selectedTime = document.getElementById("timeFilter").value;
+
+    await loadEvents(selectedTime);
+    await loadPlaces();
+}
+
+async function loadEvents(selectedTime = null) {
+    clearMarkers(markers);
     markers = [];
 
     const start = document.getElementById("startDate").value;
-    const end   = document.getElementById("endDate").value;
+    const end = document.getElementById("endDate").value;
     const classification = document.getElementById("classification").value;
-    const params = [];
-
-    let url = "/events";
 
     function formatDate(date, endOfDay = false) {
         if (!date) return null;
@@ -74,32 +110,32 @@ async function loadEvents() {
         const d = new Date(date);
         if (isNaN(d)) return null;
 
-        if (endOfDay) {
-            d.setUTCHours(23, 59, 59);
-        } else {
-            d.setUTCHours(0, 0, 0);
-        }
+        d.setUTCHours(endOfDay ? 23 : 0, endOfDay ? 59 : 0, endOfDay ? 59 : 0);
 
         return d.toISOString().split('.')[0] + "Z";
     }
 
+    let url = "/events";
+    const params = [];
+
     const startISO = formatDate(start);
-    const endISO   = formatDate(end, true);
+    const endISO = formatDate(end, true);
 
-    if (startISO && endISO) {
-        url += `?start=${startISO}&end=${endISO}`;
-    }
-
-    if (classification) {
-        params.push(`classification=${classification}`);
-    }
+    if (startISO) params.push(`start=${startISO}`);
+    if (endISO) params.push(`end=${endISO}`);
+    if (classification) params.push(`classification=${classification}`);
 
     if (params.length > 0) {
         url += "?" + params.join("&");
     }
 
     const response = await fetch(url);
-    const events = await response.json();
+    let events = await response.json();
+
+    if (selectedTime) {
+        events = filterEventsByTime(events, selectedTime);
+    }
+
     const grouped = groupByVenue(events);
     const infoWindow = new google.maps.InfoWindow();
 
@@ -111,7 +147,7 @@ async function loadEvents() {
             },
             map: map,
             title: group.venue,
-            label: `${group.events.length}`
+            label: String(group.events.length)
         });
 
         marker.addListener("click", () => {
@@ -119,8 +155,8 @@ async function loadEvents() {
                 (a, b) => new Date(a.date) - new Date(b.date)
             );
 
-            const eventList = sorted.map(e => `
-                <li style="margin-bottom:8px;">
+            const list = sorted.map(e => `
+                <li>
                     <strong>${e.name}</strong><br>
                     ${e.date}
                 </li>
@@ -129,9 +165,7 @@ async function loadEvents() {
             infoWindow.setContent(`
                 <div style="max-width:250px">
                     <h3>${group.venue}</h3>
-                    <ul style="padding-left:15px;">
-                        ${eventList}
-                    </ul>
+                    <ul>${list}</ul>
                 </div>
             `);
 
@@ -140,6 +174,60 @@ async function loadEvents() {
 
         markers.push(marker);
     });
+}
+
+async function loadPlaces() {
+    const infoWindow = new google.maps.InfoWindow();
+    clearMarkers(placeMarkers);
+    placeMarkers = [];
+
+    const bounds = map.getBounds();
+    const center = map.getCenter();
+    const ne = bounds.getNorthEast();
+    const lat = center.lat();
+    const lng = center.lng();    
+    const radius = google.maps.geometry.spherical.computeDistanceBetween(center, ne);
+    const type = document.getElementById("placeType").value;
+
+    let url = `/places?lat=${lat}&lng=${lng}&radius=${radius}&type=${type}`;
+
+    const res = await fetch(url);
+    const places = await res.json();
+    const openPlaces = filterOpenPlaces(places);
+
+    openPlaces.forEach(place => {
+        const lat = place.lat;
+        const lng = place.lng;
+
+        if (!lat || !lng) return;
+
+        const marker = new google.maps.Marker({
+            position: { lat: parseFloat(lat), lng: parseFloat(lng) },
+            map: map,
+            title: place.name,
+            icon: "http://maps.google.com/mapfiles/ms/icons/green-dot.png"
+        });
+
+        marker.addListener("click", () => {
+            infoWindow.setContent(`
+                <div style="max-width:200px">
+                <strong>${place.name}</strong><br>
+                ${place.address || ""}<br>
+                ${place.rating || "N/A"}
+                </div>
+            `);
+            infoWindow.open(map, marker);
+        });
+
+        placeMarkers.push(marker);
+    });
+}
+
+async function applyFilters() {
+    const selectedTime = document.getElementById("timeFilter").value;
+
+    await loadEvents(selectedTime);
+    await loadPlaces();
 }
 
 function initMap() {
@@ -171,7 +259,10 @@ function initMap() {
         options
     );
 
-    loadEvents();
+    google.maps.event.addListenerOnce(map, 'idle', () => {
+        loadEvents();
+        loadPlaces();
+    });
 }
 
 function getDirections() {
@@ -179,8 +270,8 @@ function getDirections() {
     const destination = document.getElementById("destination").value;
 
     directionsService.route({
-        origin: origin,
-        destination: destination,
+        origin,
+        destination,
         travelMode: "DRIVING",
     }, (result, status) => {
         if (status === "OK") {
@@ -193,5 +284,5 @@ function getDirections() {
 </script>
 
 <script async
-src="https://maps.googleapis.com/maps/api/js?key=REDACTED_API_KEY&libraries=places&callback=initMap">
+src="https://maps.googleapis.com/maps/api/js?key=<%= ENV['GOOGLE_API_KEY'] %>&libraries=places,geometry&callback=initMap">
 </script>

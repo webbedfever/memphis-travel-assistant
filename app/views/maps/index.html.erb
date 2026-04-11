@@ -12,13 +12,45 @@ let originAutocomplete;
 let destinationAutocomplete;
 
 const memphisBounds = {
-    north: 35.25,
-    south: 34.98,
-    west: -90.20,
-    east: -89.75,
+    north: 35.3,
+    south: 35.0,
+    west: -90.2,
+    east: -89.8,
 };
 
+async function loadEvents() {
+    const response = await fetch("/events");
+    const events = await response.json();
+    console.log("EVENTS:", events);
+
+    events.forEach(event => {
+        console.log("Processing:", event);
+        if (!event.lat || !event.lng) return;
+
+        const marker = new google.maps.Marker({
+            position: {
+                lat: parseFloat(event.lat),
+                lng: parseFloat(event.lng)
+            },
+            map: map,
+            title: event.name
+        });
+
+        const infoWindow = new google.maps.InfoWindow({
+            content: `
+                <strong>${event.name}</strong><br>
+                ${event.venue || "Unknown venue"}
+            `
+        });
+
+        marker.addListener("click", () => {
+            infoWindow.open(map, marker);
+        });
+    });
+}
+
 function initMap() {
+    console.log("INIT MAP RUNNING");
     map = new google.maps.Map(document.getElementById("map"), {
         center: { lat: 35.1495, lng: -90.0490 },
         zoom: 12,
@@ -46,6 +78,8 @@ function initMap() {
         document.getElementById("destination"),
         options
     );
+
+    loadEvents();
 }
 
 function getDirections() {

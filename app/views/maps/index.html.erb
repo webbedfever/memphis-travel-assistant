@@ -4,7 +4,12 @@
 
 <div id="map" style="height: 500px;"></div>
 
+<input type="date" id="startDate">
+<input type="date" id="endDate">
+<button onclick="loadEvents()">Filter Events</button>
+
 <script>
+let markers = [];
 let map;
 let directionsService;
 let directionsRenderer;
@@ -18,39 +23,105 @@ const memphisBounds = {
     east: -89.8,
 };
 
-async function loadEvents() {
-    const response = await fetch("/events");
-    const events = await response.json();
-    console.log("EVENTS:", events);
+function groupByVenue(events) {
+    const groups = {};
 
     events.forEach(event => {
-        console.log("Processing:", event);
         if (!event.lat || !event.lng) return;
 
+        const key = `${event.lat},${event.lng}`;
+
+        if (!groups[key]) {
+            groups[key] = {
+                lat: event.lat,
+                lng: event.lng,
+                venue: event.venue,
+                events: []
+            };
+        }
+
+        groups[key].events.push(event);
+    });
+
+    return Object.values(groups);
+}
+
+async function loadEvents() {
+    markers.forEach(marker => marker.setMap(null));
+    markers = [];
+
+    const start = document.getElementById("startDate").value;
+    const end   = document.getElementById("endDate").value;
+
+    let url = "/events";
+
+    function formatDate(date, endOfDay = false) {
+        if (!date) return null;
+
+        const d = new Date(date);
+        if (isNaN(d)) return null;
+
+        if (endOfDay) {
+            d.setUTCHours(23, 59, 59);
+        } else {
+            d.setUTCHours(0, 0, 0);
+        }
+
+        return d.toISOString().split('.')[0] + "Z";
+    }
+
+    const startISO = formatDate(start);
+    const endISO   = formatDate(end, true);
+
+    if (startISO && endISO) {
+        url += `?start=${startISO}&end=${endISO}`;
+    }
+
+    const response = await fetch(url);
+    const events = await response.json();
+    const grouped = groupByVenue(events);
+    const infoWindow = new google.maps.InfoWindow();
+
+    grouped.forEach(group => {
         const marker = new google.maps.Marker({
             position: {
-                lat: parseFloat(event.lat),
-                lng: parseFloat(event.lng)
+                lat: parseFloat(group.lat),
+                lng: parseFloat(group.lng)
             },
             map: map,
-            title: event.name
-        });
-
-        const infoWindow = new google.maps.InfoWindow({
-            content: `
-                <strong>${event.name}</strong><br>
-                ${event.venue || "Unknown venue"}
-            `
+            title: group.venue,
+            label: `${group.events.length}`
         });
 
         marker.addListener("click", () => {
+            const sorted = group.events.sort(
+                (a, b) => new Date(a.date) - new Date(b.date)
+            );
+
+            const eventList = sorted.map(e => `
+                <li style="margin-bottom:8px;">
+                    <strong>${e.name}</strong><br>
+                    ${e.date}
+                </li>
+            `).join("");
+
+            infoWindow.setContent(`
+                <div style="max-width:250px">
+                    <h3>${group.venue}</h3>
+                    <ul style="padding-left:15px;">
+                        ${eventList}
+                    </ul>
+                </div>
+            `);
+
             infoWindow.open(map, marker);
         });
+
+        markers.push(marker);
     });
 }
 
 function initMap() {
-    console.log("INIT MAP RUNNING");
     map = new google.maps.Map(document.getElementById("map"), {
         center: { lat: 35.1495, lng: -90.0490 },
         zoom: 12,
@@ -92,9 +163,8 @@ function getDirections() {
         travelMode: "DRIVING",
     }, (result, status) => {
         if (status === "OK") {
-        directionsRenderer.setDirections(result);
-        } 
-        else {
+            directionsRenderer.setDirections(result);
+        } else {
             alert("Directions failed: " + status);
         }
     });

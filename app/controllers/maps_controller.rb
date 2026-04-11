@@ -16,8 +16,8 @@ class MapsController < ApplicationController
         render json: result
     end
 
-    def events
-        events = TicketmasterService.events_in_memphis
+    def events      
+        events = TicketmasterService.events_in_memphis(params[:start], params[:end])
         render json: events
     end
 end

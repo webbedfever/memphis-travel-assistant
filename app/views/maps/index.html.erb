@@ -8,6 +8,17 @@
 <input type="date" id="endDate">
 <button onclick="loadEvents()">Filter Events</button>
 
+<select id="classification">
+    <option value="">All Events</option>
+    <option value="Music">Music</option>
+    <option value="Sports">Sports</option>
+    <option value="Arts & Theatre">Arts & Theatre</option>
+    <option value="Film">Film</option>
+    <option value="Miscellaneous">Misc</option>
+</select>
+
+<button onclick="loadEvents()">Apply Filters</button>
+
 <script>
 let markers = [];
 let map;
@@ -52,6 +63,8 @@ async function loadEvents() {
 
     const start = document.getElementById("startDate").value;
     const end   = document.getElementById("endDate").value;
+    const classification = document.getElementById("classification").value;
+    const params = [];
 
     let url = "/events";
 
@@ -75,6 +88,14 @@ async function loadEvents() {
 
     if (startISO && endISO) {
         url += `?start=${startISO}&end=${endISO}`;
+    }
+
+    if (classification) {
+        params.push(`classification=${classification}`);
+    }
+
+    if (params.length > 0) {
+        url += "?" + params.join("&");
     }
 
     const response = await fetch(url);

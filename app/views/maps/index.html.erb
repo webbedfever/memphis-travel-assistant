@@ -28,6 +28,20 @@
 
 <button onclick="applyFilters()">Apply Filters</button>
 
+<div id="results" style="display:flex; gap:20px; margin-top:20px;">
+  
+    <div style="flex:1;">
+        <h2>Events</h2>
+        <div id="eventList"></div>
+    </div>
+
+    <div style="flex:1;">
+        <h2>Places</h2>
+        <div id="placeList"></div>
+    </div>
+
+</div>
+
 <script>
 let markers = [];
 let placeMarkers = [];
@@ -80,6 +94,47 @@ async function applyFilters() {
     await loadPlaces();
 }
 
+function renderEventList(groups) {
+    const container = document.getElementById("eventList");
+
+    if (groups.length === 0) {
+        container.innerHTML = "<p>No events found</p>";
+        return;
+    }
+
+    container.innerHTML = groups.map(group => {
+        const events = group.events
+            .sort((a, b) => new Date(a.date) - new Date(b.date))
+            .map(e => `<li>${e.name} (${new Date(e.date).toLocaleDateString()})</li>`)
+            .join("");
+
+        return `
+            <div style="margin-bottom:15px; padding:10px; border:1px solid #ccc;">
+                <strong>${group.venue}</strong>
+                <ul>${events}</ul>
+            </div>
+        `;
+    }).join("");
+}
+
+function renderPlaceList(places) {
+    const container = document.getElementById("placeList");
+
+    if (places.length === 0) {
+        container.innerHTML = "<p>No places found</p>";
+        return;
+    }
+
+    container.innerHTML = places.map(p => `
+        <div style="margin-bottom:10px; padding:10px; border:1px solid #ccc;">
+            <strong>${p.name}</strong><br>
+            ${p.address || ""}<br>
+            Rating: ${p.rating || "N/A"}
+        </div>
+    `).join("");
+}
+
+
 async function loadEvents() {
     clearMarkers(markers);
     markers = [];
@@ -116,6 +171,7 @@ async function loadEvents() {
     let events = await response.json();
 
     const grouped = groupByVenue(events);
+    renderEventList(grouped);
     const infoWindow = new google.maps.InfoWindow();
 
     grouped.forEach(group => {
@@ -134,12 +190,16 @@ async function loadEvents() {
                 (a, b) => new Date(a.date) - new Date(b.date)
             );
 
-            const list = sorted.map(e => `
-                <li>
-                    <strong>${e.name}</strong><br>
-                    ${e.date}
-                </li>
-            `).join("");
+            const list = sorted.map(e => {
+                const eventDate = new Date(e.date).toLocaleDateString();
+
+                return `
+                    <li>
+                        <strong>${e.name}</strong><br>
+                        ${eventDate}
+                    </li>
+                `;
+            }).join("");
 
             infoWindow.setContent(`
                 <div style="max-width:250px">
@@ -173,6 +233,7 @@ async function loadPlaces() {
     const res = await fetch(url);
     const places = await res.json();
     const openPlaces = filterOpenPlaces(places);
+    renderPlaceList(openPlaces);
 
     openPlaces.forEach(place => {
         if (!place.lat || !place.lng) return;

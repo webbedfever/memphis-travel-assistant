@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Memphis Travel Assistant</title>
+    <meta charset="UTF-8">
+
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+      }
+
+      .top-right {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+      }
+
+      .sign-in-btn {
+        width: 100px;
+        height: 40px;
+        border: none;
+        background-color: #000;
+        color: #fff;
+        cursor: pointer;
+        font-size: 14px;
+      }
+
+      .sign-in-btn:focus {
+        outline: 2px solid #555;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="top-right">
+      <button class="sign-in-btn" onclick="goToSignIn()">
+        Sign In
+      </button>
+    </div>
+
+    <h1>Travel Assistant</h1>
+
+    <button onclick="goToNext()">Start Planning</button>
+
+    <script>
+      function goToNext() {
+        window.location.href = "/next";
+      }
+
+      function goToSignIn() {
+        window.location.href = "/signin";
+      }
+    </script>
+  </body>
+</html>

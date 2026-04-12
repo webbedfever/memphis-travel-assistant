@@ -16,10 +16,6 @@
     <option value="Miscellaneous">Misc</option>
 </select>
 
-<input type="datetime-local" id="timeFilter">
-
-<button onclick="applyFilters()">Apply Filters</button>
-
 <select id="placeType">
     <option value="restaurant">Restaurants</option>
     <option value="cafe">Cafes</option>
@@ -30,6 +26,7 @@
     <option value="store">Stores</option>
 </select>
 
+<button onclick="applyFilters()">Apply Filters</button>
 
 <script>
 let markers = [];
@@ -74,29 +71,16 @@ function groupByVenue(events) {
     return Object.values(groups);
 }
 
-function filterEventsByTime(events, selectedTime) {
-    if (!selectedTime) return events;
-
-    const t = new Date(selectedTime);
-
-    return events.filter(e => {
-        if (!e.date) return false;
-        return new Date(e.date) >= t;
-    });
-}
-
 function filterOpenPlaces(places) {
     return places.filter(p => p.open_now === true);
 }
 
 async function applyFilters() {
-    const selectedTime = document.getElementById("timeFilter").value;
-
-    await loadEvents(selectedTime);
+    await loadEvents();
     await loadPlaces();
 }
 
-async function loadEvents(selectedTime = null) {
+async function loadEvents() {
     clearMarkers(markers);
     markers = [];
 
@@ -111,7 +95,6 @@ async function loadEvents(selectedTime = null) {
         if (isNaN(d)) return null;
 
         d.setUTCHours(endOfDay ? 23 : 0, endOfDay ? 59 : 0, endOfDay ? 59 : 0);
-
         return d.toISOString().split('.')[0] + "Z";
     }
 
@@ -131,10 +114,6 @@ async function loadEvents(selectedTime = null) {
 
     const response = await fetch(url);
     let events = await response.json();
-
-    if (selectedTime) {
-        events = filterEventsByTime(events, selectedTime);
-    }
 
     const grouped = groupByVenue(events);
     const infoWindow = new google.maps.InfoWindow();
@@ -196,13 +175,13 @@ async function loadPlaces() {
     const openPlaces = filterOpenPlaces(places);
 
     openPlaces.forEach(place => {
-        const lat = place.lat;
-        const lng = place.lng;
-
-        if (!lat || !lng) return;
+        if (!place.lat || !place.lng) return;
 
         const marker = new google.maps.Marker({
-            position: { lat: parseFloat(lat), lng: parseFloat(lng) },
+            position: {
+                lat: parseFloat(place.lat),
+                lng: parseFloat(place.lng)
+            },
             map: map,
             title: place.name,
             icon: "http://maps.google.com/mapfiles/ms/icons/green-dot.png"
@@ -221,13 +200,6 @@ async function loadPlaces() {
 
         placeMarkers.push(marker);
     });
-}
-
-async function applyFilters() {
-    const selectedTime = document.getElementById("timeFilter").value;
-
-    await loadEvents(selectedTime);
-    await loadPlaces();
 }
 
 function initMap() {

@@ -3,7 +3,7 @@ require 'google_maps_service'
 class MapService
     def self.client
         @client ||= GoogleMapsService::Client.new(
-            key: ENV['REDACTED_API_KEY'] #API
+            key: ENV['GOOGLE_API_KEY']
         )
     end
 

@@ -21,6 +21,14 @@
   <div class="actions">
     <%= f.submit "Log in" %>
   </div>
+
+  <p>
+  <%= link_to "Sign up", new_user_registration_path %>
+</p>
+
+<p>
 <% end %>
 
-<%= render "devise/shared/links" %>
+<p>
+  <%= link_to "Try MTA without logging in", dashboard_path %>
+</p>

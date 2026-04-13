@@ -30,3 +30,118 @@ main {
 .alert-dismissible {
   padding-left: $alert-dismissible-padding-r;
 }
+
+// ------------------------------
+// UIVERSE LOGIN / FORM STYLES
+// ------------------------------
+
+body .form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+
+  background-color: #ffffff;
+  padding: 30px;
+  width: 450px;
+  border-radius: 20px;
+
+  margin: 120px auto; // centers login box
+
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
+    Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+}
+
+/* Placeholder styling */
+::placeholder {
+  font-family: inherit;
+}
+
+/* Labels */
+.flex-column > label {
+  color: #151717;
+  font-weight: 600;
+}
+
+/* Input container */
+.inputForm {
+  border: 1.5px solid #ecedec;
+  border-radius: 10px;
+  height: 50px;
+
+  display: flex;
+  align-items: center;
+
+  padding-left: 10px;
+  background: white;
+
+  transition: 0.2s ease-in-out;
+}
+
+/* Input field */
+.input {
+  margin-left: 10px;
+  width: 100%;
+  height: 100%;
+
+  border: none;
+  border-radius: 10px;
+
+  background: transparent;
+}
+
+.input:focus {
+  outline: none;
+}
+
+.inputForm:focus-within {
+  border: 1.5px solid #2d79f3;
+}
+
+/* Row layout */
+.flex-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+}
+
+/* Links */
+.span {
+  font-size: 14px;
+  margin-left: 5px;
+  color: #2d79f3;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+/* Submit button */
+.button-submit {
+  margin: 20px 0 10px 0;
+
+  width: 100%;
+  height: 50px;
+
+  background-color: #151717;
+  color: white;
+
+  border: none;
+  border-radius: 10px;
+
+  font-size: 15px;
+  font-weight: 500;
+
+  cursor: pointer;
+  transition: 0.2s ease-in-out;
+}
+
+.button-submit:hover {
+  background-color: #252727;
+}
+
+/* Paragraph text */
+.p {
+  text-align: center;
+  font-size: 14px;
+  margin: 5px 0;
+  color: black;
+}

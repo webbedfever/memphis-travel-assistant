@@ -20,8 +20,12 @@ Rails.application.routes.draw do
   # Defines the root path route ("/")
   # root "posts#index"
 
-  root 'home#index'
   get '/next', to: 'home#next'
+
+  get '/maps', to:"maps#index"
+  get "/events", to: "maps#events"
+  get "/places", to: "maps#places"
+  get "/directions", to: "maps#directions"
 end
 # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html
 

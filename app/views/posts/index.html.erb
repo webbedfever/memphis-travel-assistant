@@ -1,0 +1,15 @@
+<div class="posts-page">
+  <h1>Travel Feed</h1>
+
+  <a href="/posts/new">Create Post</a>
+
+  <div class="feed">
+    <% @posts.each do |post| %>
+      <a href="/posts/<%= post.id %>" class="post-card">
+        <img src="<%= post.image_url %>" alt="post image">
+        <h2><%= post.title %></h2>
+        <p><%= post.description %></p>
+      </a>
+    <% end %>
+  </div>
+</div>

@@ -37,16 +37,17 @@
     <% end %>
 
     <div class="actions">
-      <button class="button-submit" type="submit">
-        Sign In
-      </button>
+      <%= f.submit "Log in", class: "button-submit" %>
     </div>
 
   <% end %>
 
-  <p class="p">
-    Don't have an account?
-    <%= link_to "Sign Up", new_registration_path(resource_name), class: "span" %>
+  <p>
+    <%= link_to "Sign up", new_user_registration_path %>
+  </p>
+
+  <p>
+    <%= link_to "Try MTA without logging in", dashboard_path %>
   </p>
 
 </div>

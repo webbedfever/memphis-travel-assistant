@@ -3,6 +3,8 @@
 class ApplicationController < ActionController::Base
   layout :layout_by_resource
 
+  helper_method :guest?
+
   protected
 
   def layout_by_resource
@@ -11,5 +13,9 @@ class ApplicationController < ActionController::Base
     else
       'application'
     end
+  end
+
+  def guest?
+    !user_signed_in?
   end
 end

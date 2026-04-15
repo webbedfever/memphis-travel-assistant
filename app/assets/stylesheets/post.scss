@@ -1,0 +1,11 @@
+.posts-page {
+  .feed {
+    display: flex;
+    gap: 20px;
+  }
+
+  .post-card {
+    width: 300px;
+    border-radius: 10px;
+  }
+}

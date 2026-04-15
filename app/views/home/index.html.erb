@@ -1,56 +1,46 @@
-<!DOCTYPE html>
-<html>
-  <head>
-    <title>Memphis Travel Assistant</title>
-    <meta charset="UTF-8">
+<h1>Memphis Travel Assistant</h1>
 
-    <style>
-      body {
-        font-family: Arial, sans-serif;
-      }
+<style>
+  .feed {
+    margin-top: 80px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    align-items: center;
+  }
 
-      .top-right {
-        position: absolute;
-        top: 20px;
-        right: 20px;
-      }
+  .post-card {
+    width: 400px;
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    overflow: hidden;
+    text-decoration: none;
+    color: black;
+  }
 
-      .sign-in-btn {
-        width: 100px;
-        height: 40px;
-        border: none;
-        background-color: #000;
-        color: #fff;
-        cursor: pointer;
-        font-size: 14px;
-      }
+  .post-card img {
+    width: 100%;
+    height: 250px;
+    object-fit: cover;
+  }
 
-      .sign-in-btn:focus {
-        outline: 2px solid #555;
-      }
-    </style>
-  </head>
+  .post-card-content {
+    padding: 10px;
+  }
+</style>
 
-  <body>
-    <div class="top-right">
-      <button class="sign-in-btn" onclick="goToSignIn()">
-        Sign In
-      </button>
-    </div>
+<!-- FEED -->
+<div class="feed">
+  <% @posts.each do |post| %>
+    <a href="/posts/<%= post.id %>" class="post-card">
+      <% if post.image_url.present? %>
+        <img src="<%= post.image_url %>">
+      <% end %>
 
-    <h1>Travel Assistant</h1>
-
-    <button onclick="goToNext()">Start Planning</button>
-
-    <script>
-      function goToNext() {
-        window.location.href = "/next";
-      }
-
-      function goToSignIn() {
-        window.location.href = "/signin";
-      }
-    </script>
-    <%= button_to "View Map", maps_path, method: :get, class: "btn-primary" %>
-  </body>
-</html>
+      <div class="post-card-content">
+        <h3><%= post.title %></h3>
+        <p><%= post.description %></p>
+      </div>
+    </a>
+  <% end %>
+</div>

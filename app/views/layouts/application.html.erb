@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Memphis Travel Assistant</title>
+
+    <%= csrf_meta_tags %>
+    <%= csp_meta_tag %>
+
+    <%= stylesheet_link_tag "application", media: "all" %>
+    <%= javascript_importmap_tags %>
+  </head>
+
+  <body>
+    <div id="loading-spinner" class="loading-spinner hidden">
+      <svg viewBox="25 25 50 50">
+        <circle r="20" cy="50" cx="50"></circle>
+      </svg>
+    </div>
+
+    <%= render 'shared/navbar' %>
+    <%= yield %>
+  </body>
+</html>

@@ -1,43 +1,45 @@
 require 'net/http'
 require 'json'
 
-
 class WeatherService
-  BASE_URL = "https://api.openweathermap.org/data/2.5/weather"
+  BASE_URL = "https://api.weather.gov"
 
-  def initialize(location = "Memphis")
-    @location = location
-    @api_key = ENV['WEATHER_API_KEY']
-  end
+  def self.current_weather
+    lat = 35.1495
+    lon = -90.0490
 
-def fetch_weather
-  Rails.cache.fetch("weather_#{@location}", expires_in: 30.minutes) do
-    uri = URI("#{BASE_URL}?q=#{@location}&appid=#{@api_key}&units=imperial")
+    headers = { "User-Agent" => "memphis-travel-app" }
 
-    response = Net::HTTP.get(uri)
-    data = JSON.parse(response)
+    # Step 1: get grid info
+    points_uri = URI("#{BASE_URL}/points/#{lat},#{lon}")
+    points_res = Net::HTTP.get_response(points_uri)
+    return nil unless points_res.is_a?(Net::HTTPSuccess)
 
-    format_weather(data)
-  end
-rescue StandardError => e
-  handle_error(e)
-end
+    points_data = JSON.parse(points_res.body)
+    forecast_url = points_data["properties"]["forecast"]
 
-  private
+    # Step 2: get forecast
+    forecast_uri = URI(forecast_url)
+    forecast_req = Net::HTTP::Get.new(forecast_uri, headers)
 
-  def format_weather(data)
+    forecast_res = Net::HTTP.start(forecast_uri.hostname, forecast_uri.port, use_ssl: true) do |http|
+      http.request(forecast_req)
+    end
+
+    return nil unless forecast_res.is_a?(Net::HTTPSuccess)
+
+    forecast_data = JSON.parse(forecast_res.body)
+
+    today = forecast_data["properties"]["periods"].first
+
     {
-      temperature: data["main"]["temp"],
-      condition: data["weather"][0]["description"],
-      humidity: data["main"]["humidity"],
-      city: data["name"]
+      temperature: today["temperature"],
+      unit: today["temperatureUnit"],
+      condition: today["shortForecast"]
     }
-  end
 
-  def handle_error(error)
-    {
-      error: "Weather data temporarily unavailable",
-      message: error.message
-    }
+  rescue => e
+    Rails.logger.error("Weather API error: #{e.message}")
+    nil
   end
 end

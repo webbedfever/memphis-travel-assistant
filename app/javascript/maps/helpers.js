@@ -43,3 +43,15 @@ export function formatDate(date, endOfDay = false) {
 
 	return `${parsed.toISOString().split(".")[0]}Z`;
 }
+
+export function formatEventTime(time) {
+	if (!time) return "Time TBA";
+
+	const parsed = new Date(`2000-01-01T${time}`);
+	if (Number.isNaN(parsed.getTime())) return time;
+
+	return parsed.toLocaleTimeString([], {
+		hour: "numeric",
+		minute: "2-digit"
+	});
+}

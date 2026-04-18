@@ -1,4 +1,4 @@
-import { clearMarkers, groupByVenue, formatDate } from "maps/helpers";
+import { clearMarkers, groupByVenue, formatDate, formatEventTime } from "maps/helpers";
 import { bindPlannerButtons, syncPlannerButtons } from "maps/planner_state";
 
 export default class EventsController {
@@ -67,18 +67,27 @@ export default class EventsController {
 						location_name: group.venue,
 						latitude: event.lat,
 						longitude: event.lng,
-						start_time: event.date,
-						external_id: `${event.name}-${event.date}-${group.venue}`,
+						start_time: event.starts_at,
+						external_id: `${event.name}-${event.starts_at}-${group.venue}`,
 						source: "ticketmaster",
 						category: event.classification
 					}));
 
 					return `
-						<li>
-							${event.name} (${new Date(event.date).toLocaleDateString()})
-							<br>
-							<button type="button" class="add-to-planner-button" data-item="${payload}">
-								Add to Planner
+						<li class="maps-result-item">
+							<div class="maps-result-copy">
+								<strong>${event.name}</strong>
+								<div class="maps-result-meta">
+									<span>${new Date(event.date).toLocaleDateString()}</span>
+									<span>${formatEventTime(event.time)}</span>
+								</div>
+							</div>
+							<button
+								type="button"
+								class="add-to-planner-button planner-inline-action"
+								data-item="${payload}"
+								aria-label="Save ${event.name} to planner">
+								Save
 							</button>
 						</li>
 					`;
@@ -86,8 +95,8 @@ export default class EventsController {
 				.join("");
 
 			return `
-				<div style="margin-bottom:15px; padding:10px; border:1px solid #ccc;">
-					<strong>${group.venue}</strong>
+				<div class="maps-group-card">
+					<strong class="maps-group-title">${group.venue}</strong>
 					<ul>${items}</ul>
 				</div>
 			`;
@@ -114,7 +123,7 @@ export default class EventsController {
 					.map(event => `
 						<li>
 							<strong>${event.name}</strong><br>
-							${new Date(event.date).toLocaleDateString()}
+							${new Date(event.date).toLocaleDateString()} at ${formatEventTime(event.time)}
 						</li>
 					`)
 					.join("");

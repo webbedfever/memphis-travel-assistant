@@ -12,8 +12,10 @@
 
 					<% if item.start_time.present? %>
 						<div>
-							Time: <%= item.start_time.strftime("%I:%M %p") %>
-							<% if item.end_time.present? %>
+							<% ticketmaster_time_known = item.external_id.to_s.match?(/T\d{2}:\d{2}/) || !item.start_time.strftime("%H:%M:%S").eql?("00:00:00") %>
+							<% time_unknown = item.source == "ticketmaster" && !ticketmaster_time_known %>
+							Time: <%= time_unknown ? "TBA" : item.start_time.strftime("%I:%M %p") %>
+							<% if item.end_time.present? && !time_unknown %>
 								- <%= item.end_time.strftime("%I:%M %p") %>
 							<% end %>
 						</div>

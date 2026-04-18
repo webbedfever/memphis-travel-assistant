@@ -58,8 +58,9 @@ async function parseResponse(response) {
 }
 
 function markButtonAsAdded(button) {
-	button.textContent = "Added";
+	button.textContent = "Saved";
 	button.disabled = true;
+	button.dataset.saved = "true";
 }
 
 export async function loadPlannerItems(force = false) {

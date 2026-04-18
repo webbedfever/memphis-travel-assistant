@@ -65,13 +65,23 @@ export default class PlacesController {
 			}));
 
 			return `
-				<div style="margin-bottom:10px; padding:10px; border:1px solid #ccc;">
-					<strong>${place.name}</strong><br>
-					${place.address || ""}<br>
-					Rating: ${place.rating || "N/A"}<br>
-					<button type="button" class="add-to-planner-button" data-item="${payload}">
-						Add to Planner
-					</button>
+				<div class="maps-group-card maps-place-card">
+					<div class="maps-result-item">
+						<div class="maps-result-copy">
+							<strong>${place.name}</strong>
+							<div class="maps-result-meta">
+								<span>${place.address || "Address unavailable"}</span>
+								<span>Rating: ${place.rating || "N/A"}</span>
+							</div>
+						</div>
+						<button
+							type="button"
+							class="add-to-planner-button planner-inline-action"
+							data-item="${payload}"
+							aria-label="Save ${place.name} to planner">
+							Save
+						</button>
+					</div>
 				</div>
 			`;
 		}).join("");

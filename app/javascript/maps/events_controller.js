@@ -1,4 +1,4 @@
-import { clearMarkers, groupByVenue, formatDate } from "./helpers";
+import { clearMarkers, groupByVenue, formatDate } from "maps/helpers";
 
 export default class EventsController {
 	constructor(mapController) {
@@ -10,6 +10,9 @@ export default class EventsController {
 	async load() {
 		clearMarkers(this.markers);
 		this.markers = [];
+
+		const container = document.getElementById("eventList");
+		container.innerHTML = "<p>Loading events...</p>";
 
 		const start = document.getElementById("startDate").value;
 		const end = document.getElementById("endDate").value;
@@ -29,12 +32,20 @@ export default class EventsController {
 			url += `?${params.join("&")}`;
 		}
 
-		const response = await fetch(url);
-		const events = await response.json();
+		try {
+			const response = await fetch(url);
+			if (!response.ok) throw new Error(`Request failed: ${response.status}`);
 
-		const grouped = groupByVenue(events);
-		this.renderList(grouped);
-		this.renderMarkers(grouped);
+			const events = await response.json();
+			const grouped = groupByVenue(events);
+
+			this.renderList(grouped);
+			this.renderMarkers(grouped);
+			this.bindPlannerButtons();
+		} catch (error) {
+			container.innerHTML = "<p>Unable to load events.</p>";
+			console.error(error);
+		}
 	}
 
 	renderList(groups) {
@@ -48,7 +59,29 @@ export default class EventsController {
 		container.innerHTML = groups.map(group => {
 			const items = group.events
 				.sort((a, b) => new Date(a.date) - new Date(b.date))
-				.map(event => `<li>${event.name} (${new Date(event.date).toLocaleDateString()})</li>`)
+				.map(event => {
+					const payload = encodeURIComponent(JSON.stringify({
+						title: event.name,
+						item_type: "event",
+						location_name: group.venue,
+						latitude: event.lat,
+						longitude: event.lng,
+						start_time: event.date,
+						external_id: `${event.name}-${event.date}-${group.venue}`,
+						source: "ticketmaster",
+						category: event.classification
+					}));
+
+					return `
+						<li>
+							${event.name} (${new Date(event.date).toLocaleDateString()})
+							<br>
+							<button type="button" class="add-to-planner-button" data-item="${payload}">
+								Add to Planner
+							</button>
+						</li>
+					`;
+				})
 				.join("");
 
 			return `
@@ -94,6 +127,43 @@ export default class EventsController {
 			});
 
 			this.markers.push(marker);
+		});
+	}
+
+	bindPlannerButtons() {
+		document.querySelectorAll(".add-to-planner-button").forEach(button => {
+			button.addEventListener("click", async e => {
+				e.preventDefault();
+				const clickedButton = e.currentTarget;
+				const rawItem = clickedButton.dataset.item;
+				const plannerItem = JSON.parse(decodeURIComponent(rawItem));
+
+				try {
+					const response = await fetch("/planner_items", {
+						method: "POST",
+						headers: {
+							"Content-Type": "application/json",
+							"X-CSRF-Token": document.querySelector('meta[name="csrf-token"]').content
+						},
+						body: JSON.stringify({
+							planner_item: plannerItem
+						})
+					});
+
+					if (!response.ok) {
+						const errorData = await response.json();
+						throw new Error(errorData.errors?.join(", ") || "Unable to save event");
+					}	
+
+					if (clickedButton) {
+						clickedButton.textContent = "Added";
+						clickedButton.disabled = true;
+					}
+				} catch (error) {
+					alert(error.message);
+					console.error(error);
+				}
+			});
 		});
 	}
 }

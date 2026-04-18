@@ -35,6 +35,12 @@ class PlannerItem < ApplicationRecord
 
 	  validates :title, presence: true
 	  validates :item_type, presence: true
+	  validates :external_id,
+	  	uniqueness: {
+	  		scope: [:user_id, :source],
+	  		message: "has already been added to your planner"
+	  	},
+	  	allow_blank: true
 
 	  scope :ordered, -> { order(:start_time, :created_at) }
 	  scope :events, -> { where(item_type: "event") }

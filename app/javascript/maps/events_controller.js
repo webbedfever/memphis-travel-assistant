@@ -1,4 +1,5 @@
 import { clearMarkers, groupByVenue, formatDate } from "maps/helpers";
+import { bindPlannerButtons, syncPlannerButtons } from "maps/planner_state";
 
 export default class EventsController {
 	constructor(mapController) {
@@ -91,6 +92,8 @@ export default class EventsController {
 				</div>
 			`;
 		}).join("");
+
+		syncPlannerButtons(container);
 	}
 
 	renderMarkers(groups) {
@@ -131,39 +134,7 @@ export default class EventsController {
 	}
 
 	bindPlannerButtons() {
-		document.querySelectorAll(".add-to-planner-button").forEach(button => {
-			button.addEventListener("click", async e => {
-				e.preventDefault();
-				const clickedButton = e.currentTarget;
-				const rawItem = clickedButton.dataset.item;
-				const plannerItem = JSON.parse(decodeURIComponent(rawItem));
-
-				try {
-					const response = await fetch("/planner_items", {
-						method: "POST",
-						headers: {
-							"Content-Type": "application/json",
-							"X-CSRF-Token": document.querySelector('meta[name="csrf-token"]').content
-						},
-						body: JSON.stringify({
-							planner_item: plannerItem
-						})
-					});
-
-					if (!response.ok) {
-						const errorData = await response.json();
-						throw new Error(errorData.errors?.join(", ") || "Unable to save event");
-					}	
-
-					if (clickedButton) {
-						clickedButton.textContent = "Added";
-						clickedButton.disabled = true;
-					}
-				} catch (error) {
-					alert(error.message);
-					console.error(error);
-				}
-			});
-		});
+		const container = document.getElementById("eventList");
+		bindPlannerButtons(container);
 	}
 }

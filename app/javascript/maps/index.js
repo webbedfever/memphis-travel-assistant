@@ -2,6 +2,9 @@ import MapController from "maps/map_controller";
 import DirectionsController from "maps/directions_controller";
 import EventsController from "maps/events_controller";
 import PlacesController from "maps/places_controller";
+import { loadPlannerItems } from "maps/planner_state";
+
+let googleMapsPromise = null;
 
 class MapsPage {
 	constructor() {
@@ -14,6 +17,7 @@ class MapsPage {
 
 	async initMap() {
 		if (this.initialized) return;
+		if (!document.getElementById("map")) return;
 		if (!window.google || !window.google.maps) return;
 
 		this.mapController.init();
@@ -30,6 +34,12 @@ class MapsPage {
 	}
 
 	async loadAll() {
+		try {
+			await loadPlannerItems(true);
+		} catch (error) {
+			console.error(error);
+		}
+
 		await this.eventsController.load();
 		await this.placesController.load();
 	}
@@ -42,6 +52,14 @@ class MapsPage {
 		if (!this.directionsController) return;
 		this.directionsController.getDirections();
 	}
+
+	reset() {
+		this.mapController = new MapController();
+		this.directionsController = null;
+		this.eventsController = null;
+		this.placesController = null;
+		this.initialized = false;
+	}
 }
 
 const app = new MapsPage();
@@ -49,13 +67,66 @@ const app = new MapsPage();
 window.applyFilters = () => app.applyFilters();
 window.getDirections = () => app.getDirections();
 
-function waitForGoogleMaps() {
-	if (window.google && window.google.maps) {
-		app.initMap();
-	} else {
-		setTimeout(waitForGoogleMaps, 100);
+function loadGoogleMapsApi() {
+	if (window.google?.maps?.places && window.google.maps.geometry) {
+		return Promise.resolve();
+	}
+
+	if (googleMapsPromise) {
+		return googleMapsPromise;
+	}
+
+	const mapElement = document.getElementById("map");
+	const apiKey = mapElement?.dataset.googleMapsApiKey;
+
+	if (!apiKey) {
+		return Promise.reject(new Error("Missing Google Maps API key"));
+	}
+
+	googleMapsPromise = new Promise((resolve, reject) => {
+		const existingScript = document.getElementById("google-maps-script");
+
+		const handleLoad = () => resolve();
+		const handleError = () => {
+			googleMapsPromise = null;
+			reject(new Error("Unable to load Google Maps API"));
+		};
+
+		if (existingScript) {
+			if (window.google?.maps?.places && window.google.maps.geometry) {
+				resolve();
+				return;
+			}
+
+			existingScript.addEventListener("load", handleLoad, { once: true });
+			existingScript.addEventListener("error", handleError, { once: true });
+			return;
+		}
+
+		const script = document.createElement("script");
+		script.id = "google-maps-script";
+		script.async = true;
+		script.defer = true;
+		script.src = `https://maps.googleapis.com/maps/api/js?key=${encodeURIComponent(apiKey)}&libraries=places,geometry`;
+		script.addEventListener("load", handleLoad, { once: true });
+		script.addEventListener("error", handleError, { once: true });
+		document.head.appendChild(script);
+	});
+
+	return googleMapsPromise;
+}
+
+async function waitForGoogleMaps() {
+	if (!document.getElementById("map")) return;
+
+	try {
+		await loadGoogleMapsApi();
+		await app.initMap();
+	} catch (error) {
+		console.error(error);
 	}
 }
 
 document.addEventListener("turbo:load", waitForGoogleMaps);
 document.addEventListener("DOMContentLoaded", waitForGoogleMaps);
+document.addEventListener("turbo:before-cache", () => app.reset());

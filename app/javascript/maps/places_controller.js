@@ -1,4 +1,5 @@
 import { clearMarkers, filterOpenPlaces } from "maps/helpers";
+import { bindPlannerButtons, syncPlannerButtons } from "maps/planner_state";
 
 export default class PlacesController {
 	constructor(mapController) {
@@ -57,6 +58,7 @@ export default class PlacesController {
 				address: place.address,
 				latitude: place.lat,
 				longitude: place.lng,
+				external_id: `google-place-${place.name}-${place.lat}-${place.lng}`,
 				source: "google_places",
 				category: type,
 				rating: place.rating
@@ -73,6 +75,8 @@ export default class PlacesController {
 				</div>
 			`;
 		}).join("");
+
+		syncPlannerButtons(container);
 	}
 
 	renderMarkers(places) {
@@ -106,39 +110,7 @@ export default class PlacesController {
 	}
 
 	bindPlannerButtons() {
-		document.querySelectorAll(".add-to-planner-button").forEach(button => {
-			button.addEventListener("click", async e => {
-				e.preventDefault();
-				const clickedButton = e.currentTarget;
-				const rawItem = clickedButton.dataset.item;
-				const plannerItem = JSON.parse(decodeURIComponent(rawItem));
-
-				try {
-					const response = await fetch("/planner_items", {
-						method: "POST",
-						headers: {
-							"Content-Type": "application/json",
-							"X-CSRF-Token": document.querySelector('meta[name="csrf-token"]').content
-						},
-						body: JSON.stringify({
-							planner_item: plannerItem
-						})
-					});
-
-					if (!response.ok) {
-						const errorData = await response.json();
-						throw new Error(errorData.errors?.join(", ") || "Unable to save place");
-					}
-
-					if (clickedButton) {
-						clickedButton.textContent = "Added";
-						clickedButton.disabled = true;
-					}
-				} catch (error) {
-					alert(error.message);
-					console.error(error);
-				}
-			});
-		});
+		const container = document.getElementById("placeList");
+		bindPlannerButtons(container);
 	}
 }

@@ -4,6 +4,11 @@ class PlannerItemsController < ApplicationController
 
 	def index
 		@planner_items = current_user.planner_items.ordered
+
+		respond_to do |format|
+			format.html
+			format.json { render json: @planner_items.as_json(only: planner_item_json_fields) }
+		end
 	end
 
 	def create
@@ -14,6 +19,8 @@ class PlannerItemsController < ApplicationController
 		else
 			render json: { errors: @planner_item.errors.full_messages }, status: :unprocessable_entity
 		end
+	rescue ActiveRecord::RecordNotUnique
+		render json: { errors: ["Item has already been added to your planner"] }, status: :unprocessable_entity
 	end
 
 	def update
@@ -52,5 +59,19 @@ class PlannerItemsController < ApplicationController
 			:rating,
 			:notes
 		)
+	end
+
+	def planner_item_json_fields
+		[
+			:id,
+			:title,
+			:item_type,
+			:location_name,
+			:latitude,
+			:longitude,
+			:start_time,
+			:external_id,
+			:source
+		]
 	end
 end

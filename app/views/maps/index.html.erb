@@ -2,7 +2,10 @@
 <input id="destination" placeholder="Destination">
 <button onclick="getDirections()">Get Directions</button>
 
-<div id="map" style="height: 500px;"></div>
+<div
+	id="map"
+	data-google-maps-api-key="<%= ENV['GOOGLE_API_KEY'] %>"
+	style="height: 500px;"></div>
 
 <input type="date" id="startDate">
 <input type="date" id="endDate">
@@ -43,7 +46,3 @@
 <div style="margin-bottom:15px;">
 	<a href="/planner">View My Planner</a>
 </div>
-
-<script async defer
-src="https://maps.googleapis.com/maps/api/js?key=<%= ENV['GOOGLE_API_KEY'] %>&libraries=places,geometry">
-</script>

@@ -2,24 +2,31 @@
 #
 # Table name: planner_items
 #
-#  id            :bigint           not null, primary key
-#  address       :string
-#  category      :string
-#  description   :text
-#  end_time      :datetime
-#  item_type     :string           not null
-#  latitude      :float
-#  location_name :string
-#  longitude     :float
-#  notes         :text
-#  rating        :float
-#  source        :string
-#  start_time    :datetime
-#  title         :string           not null
-#  created_at    :datetime         not null
-#  updated_at    :datetime         not null
-#  external_id   :string
-#  user_id       :bigint           not null
+#  id               :bigint           not null, primary key
+#  address          :string
+#  category         :string
+#  description      :text
+#  end_time         :datetime
+#  google_url       :string
+#  hours_day        :string
+#  hours_for_day    :string
+#  item_type        :string           not null
+#  latitude         :float
+#  location_name    :string
+#  longitude        :float
+#  notes            :text
+#  open_now         :boolean
+#  phone            :string
+#  rating           :float
+#  source           :string
+#  start_time       :datetime
+#  ticketmaster_url :string
+#  title            :string           not null
+#  website          :string
+#  created_at       :datetime         not null
+#  updated_at       :datetime         not null
+#  external_id      :string
+#  user_id          :bigint           not null
 #
 # Indexes
 #

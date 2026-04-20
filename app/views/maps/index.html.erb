@@ -30,6 +30,30 @@
 		font-weight: 600;
 	}
 
+	.maps-toggle-button {
+		padding: 10px 16px;
+		border: 1px solid #ccd6dd;
+		border-radius: 10px;
+		background: #fff;
+		color: #47606a;
+		font-weight: 600;
+	}
+
+	.maps-toggle-button[aria-pressed="true"] {
+		border-color: #1f6f78;
+		background: #e7f4f5;
+		color: #1f6f78;
+	}
+
+	.maps-reset-button {
+		padding: 10px 16px;
+		border: 1px solid #ccd6dd;
+		border-radius: 10px;
+		background: #fff;
+		color: #47606a;
+		font-weight: 600;
+	}
+
 	.maps-results {
 		display: grid;
 		grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -111,6 +135,20 @@
 		font-size: 0.86rem;
 	}
 
+	.maps-result-links {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 10px;
+		margin-top: 6px;
+		font-size: 0.84rem;
+	}
+
+	.maps-result-links a {
+		color: #1f6f78;
+		font-weight: 600;
+		text-decoration: none;
+	}
+
 	.planner-inline-action {
 		flex-shrink: 0;
 		padding: 4px 10px;
@@ -171,6 +209,8 @@
 	<div class="maps-filters">
 		<input type="date" id="startDate">
 		<input type="date" id="endDate">
+		<input type="time" id="startTime" aria-label="Start time">
+		<input type="time" id="endTime" aria-label="End time">
 
 		<select id="classification">
 			<option value="">All Events</option>
@@ -182,6 +222,7 @@
 		</select>
 
 		<select id="placeType">
+			<option value="">All Places</option>
 			<option value="restaurant">Restaurants</option>
 			<option value="cafe">Cafes</option>
 			<option value="bar">Bars</option>
@@ -191,7 +232,17 @@
 			<option value="store">Stores</option>
 		</select>
 
+		<button
+			type="button"
+			id="openNowButton"
+			class="maps-toggle-button"
+			aria-pressed="false"
+			onclick="toggleOpenNowFilter()">
+			Open Now
+		</button>
+
 		<button class="maps-action-button" onclick="applyFilters()">Apply Filters</button>
+		<button type="button" class="maps-reset-button" onclick="resetFilters()">Reset Filters</button>
 	</div>
 
 	<div id="results" class="maps-results">

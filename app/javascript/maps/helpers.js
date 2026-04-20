@@ -15,6 +15,7 @@ export function groupByVenue(events) {
 				lat: event.lat,
 				lng: event.lng,
 				venue: event.venue,
+				address: event.venue_address,
 				events: []
 			};
 		}
@@ -23,10 +24,6 @@ export function groupByVenue(events) {
 	});
 
 	return Object.values(grouped);
-}
-
-export function filterOpenPlaces(places) {
-	return places.filter(place => place.open_now === true);
 }
 
 export function formatDate(date, endOfDay = false) {

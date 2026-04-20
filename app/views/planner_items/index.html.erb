@@ -29,6 +29,50 @@
 						<div>Address: <%= item.address %></div>
 					<% end %>
 
+					<% if item.item_type == "place" %>
+						<% if item.rating.present? %>
+							<div>Rating: <%= item.rating %></div>
+						<% end %>
+
+						<% unless item.open_now.nil? %>
+							<div>Status: <%= item.open_now? ? "Open now" : "Closed now" %></div>
+						<% end %>
+
+						<% if item.hours_for_day.present? %>
+							<div>Hours: <%= item.hours_for_day %></div>
+						<% elsif item.hours_day.present? %>
+							<div>Hours: <%= item.hours_day %> hours unavailable</div>
+						<% end %>
+
+						<% if item.phone.present? %>
+							<div>Phone: <%= item.phone %></div>
+						<% end %>
+
+						<% website_url = safe_external_url(item.website) %>
+						<% google_url = safe_external_url(item.google_url) %>
+
+						<% if website_url.present? || google_url.present? %>
+							<div>
+								<% if website_url.present? %>
+									<%= link_to "Website", website_url, target: "_blank", rel: "noopener" %>
+								<% end %>
+								<% if google_url.present? %>
+									<%= link_to "Google listing", google_url, target: "_blank", rel: "noopener" %>
+								<% end %>
+							</div>
+						<% end %>
+					<% end %>
+
+					<% if item.item_type == "event" %>
+						<% ticketmaster_url = safe_external_url(item.ticketmaster_url) %>
+
+						<% if ticketmaster_url.present? %>
+							<div>
+								<%= link_to "Ticketmaster", ticketmaster_url, target: "_blank", rel: "noopener" %>
+							</div>
+						<% end %>
+					<% end %>
+
 					<% if item.notes.present? %>
 						<div>Notes: <%= item.notes %></div>
 					<% end %>

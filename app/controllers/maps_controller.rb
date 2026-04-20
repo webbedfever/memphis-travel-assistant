@@ -3,12 +3,11 @@ class MapsController < ApplicationController
     end
 
     def directions
-        origin = MapService.geocode(params[:origin]).first[:geometry][:location]
-        dest   = MapService.geocode(params[:destination]).first[:geometry][:location]
+        origin = geocoded_location(params[:origin])
+        destination = geocoded_location(params[:destination])
 
-        unless MapService.in_memphis?(origin[:lat], origin[:lng]) &&
-            MapService.in_memphis?(dest[:lat], dest[:lng])
-            render json: { error: "Locations must be within Memphis" }, status: 422
+        unless valid_memphis_locations?(origin, destination)
+            render json: { error: "Locations must be within Memphis" }, status: :unprocessable_entity
             return
         end
 
@@ -16,12 +15,13 @@ class MapsController < ApplicationController
         render json: result
     end
 
-    def events      
+    def events
         events = TicketmasterService.events_in_memphis(
-            params[:start], 
-            params[:end], 
+            params[:start],
+            params[:end],
             params[:classification]
         )
+
         render json: events
     end
 
@@ -32,6 +32,20 @@ class MapsController < ApplicationController
             params[:radius],
             params[:type]
         )
+
         render json: places
+    end
+
+    private
+
+    def geocoded_location(address)
+        MapService.geocode(address).first&.dig(:geometry, :location)
+    end
+
+    def valid_memphis_locations?(origin, destination)
+        return false if origin.blank? || destination.blank?
+
+        MapService.in_memphis?(origin[:lat], origin[:lng]) &&
+        MapService.in_memphis?(destination[:lat], destination[:lng])
     end
 end

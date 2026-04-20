@@ -27,6 +27,9 @@ Rails.application.routes.draw do
   get '/events', to: 'maps#events'
   get '/places', to: 'maps#places'
   get '/directions', to: 'maps#directions'
+
+  get "/planner", to: "planner_items#index"
+  resources :planner_items, only: [:index, :create, :update, :destroy]
 end
 
 # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html

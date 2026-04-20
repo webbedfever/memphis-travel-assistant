@@ -1,321 +1,208 @@
-<input id="origin" placeholder="Start location">
-<input id="destination" placeholder="Destination">
-<button onclick="getDirections()">Get Directions</button>
+<style>
+	.maps-page {
+		padding: 24px;
+	}
 
-<div id="map" style="height: 500px;"></div>
+	.maps-toolbar,
+	.maps-filters {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 12px;
+		margin-bottom: 16px;
+	}
 
-<input type="date" id="startDate">
-<input type="date" id="endDate">
+	.maps-toolbar input,
+	.maps-filters input,
+	.maps-filters select {
+		min-width: 180px;
+		padding: 10px 12px;
+		border: 1px solid #cfd4dc;
+		border-radius: 10px;
+		background: #fff;
+	}
 
-<select id="classification">
-    <option value="">All Events</option>
-    <option value="Music">Music</option>
-    <option value="Sports">Sports</option>
-    <option value="Arts & Theatre">Arts & Theatre</option>
-    <option value="Film">Film</option>
-    <option value="Miscellaneous">Misc</option>
-</select>
+	.maps-action-button {
+		padding: 10px 16px;
+		border: none;
+		border-radius: 10px;
+		background: #1f6f78;
+		color: #fff;
+		font-weight: 600;
+	}
 
-<select id="placeType">
-    <option value="restaurant">Restaurants</option>
-    <option value="cafe">Cafes</option>
-    <option value="bar">Bars</option>
-    <option value="tourist_attraction">Attractions</option>
-    <option value="museum">Museums</option>
-    <option value="park">Parks</option>
-    <option value="store">Stores</option>
-</select>
+	.maps-results {
+		display: grid;
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+		gap: 20px;
+		margin-top: 24px;
+		align-items: stretch;
+	}
 
-<button onclick="applyFilters()">Apply Filters</button>
+	.maps-panel {
+		display: flex;
+		flex-direction: column;
+		min-height: 420px;
+		max-height: 420px;
+		padding: 16px;
+		border: 1px solid #d8dee6;
+		border-radius: 16px;
+		background: #fafbfc;
+		box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
+	}
 
-<div id="results" style="display:flex; gap:20px; margin-top:20px;">
-  
-    <div style="flex:1;">
-        <h2>Events</h2>
-        <div id="eventList"></div>
-    </div>
+	.maps-panel h2 {
+		margin: 0 0 12px;
+		font-size: 1.2rem;
+	}
 
-    <div style="flex:1;">
-        <h2>Places</h2>
-        <div id="placeList"></div>
-    </div>
+	.maps-panel-list {
+		flex: 1;
+		overflow-y: auto;
+		padding-right: 8px;
+	}
 
+	.maps-group-card {
+		margin-bottom: 12px;
+		padding: 12px 14px;
+		border: 1px solid #dde3ea;
+		border-radius: 14px;
+		background: #fff;
+	}
+
+	.maps-group-title {
+		display: block;
+		margin-bottom: 10px;
+		font-size: 0.98rem;
+	}
+
+	.maps-group-card ul {
+		list-style: none;
+		padding: 0;
+		margin: 0;
+	}
+
+	.maps-result-item {
+		display: flex;
+		align-items: flex-start;
+		justify-content: space-between;
+		gap: 12px;
+		padding: 8px 0;
+	}
+
+	.maps-result-item + .maps-result-item {
+		border-top: 1px solid #eef2f6;
+	}
+
+	.maps-result-copy {
+		min-width: 0;
+	}
+
+	.maps-result-copy strong {
+		display: block;
+		margin-bottom: 2px;
+		font-size: 0.95rem;
+	}
+
+	.maps-result-meta {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 6px 10px;
+		color: #5f6b7a;
+		font-size: 0.86rem;
+	}
+
+	.planner-inline-action {
+		flex-shrink: 0;
+		padding: 4px 10px;
+		border: 1px solid #ccd6dd;
+		border-radius: 999px;
+		background: transparent;
+		color: #47606a;
+		font-size: 0.78rem;
+		font-weight: 600;
+		opacity: 0.42;
+		transition: opacity 0.2s ease, background-color 0.2s ease, color 0.2s ease;
+	}
+
+	.maps-result-item:hover .planner-inline-action,
+	.planner-inline-action:focus-visible,
+	.planner-inline-action[data-saved="true"] {
+		opacity: 1;
+	}
+
+	.planner-inline-action[data-saved="true"] {
+		border-color: #1f6f78;
+		background: #e7f4f5;
+		color: #1f6f78;
+	}
+
+	@media (max-width: 768px) {
+		.maps-page {
+			padding: 16px;
+		}
+
+		.maps-results {
+			grid-template-columns: 1fr;
+		}
+
+		.maps-panel {
+			min-height: 320px;
+			max-height: 320px;
+		}
+
+		.planner-inline-action {
+			opacity: 1;
+		}
+	}
+</style>
+
+<div class="maps-page">
+	<div class="maps-toolbar">
+		<input id="origin" placeholder="Start location">
+		<input id="destination" placeholder="Destination">
+		<button class="maps-action-button" onclick="getDirections()">Get Directions</button>
+	</div>
+
+	<div
+		id="map"
+		data-google-maps-api-key="<%= ENV['GOOGLE_API_KEY'] %>"
+		style="height: 500px; border-radius: 18px; overflow: hidden;"></div>
+
+	<div class="maps-filters">
+		<input type="date" id="startDate">
+		<input type="date" id="endDate">
+
+		<select id="classification">
+			<option value="">All Events</option>
+			<option value="Music">Music</option>
+			<option value="Sports">Sports</option>
+			<option value="Arts & Theatre">Arts & Theatre</option>
+			<option value="Film">Film</option>
+			<option value="Miscellaneous">Misc</option>
+		</select>
+
+		<select id="placeType">
+			<option value="restaurant">Restaurants</option>
+			<option value="cafe">Cafes</option>
+			<option value="bar">Bars</option>
+			<option value="tourist_attraction">Attractions</option>
+			<option value="museum">Museums</option>
+			<option value="park">Parks</option>
+			<option value="store">Stores</option>
+		</select>
+
+		<button class="maps-action-button" onclick="applyFilters()">Apply Filters</button>
+	</div>
+
+	<div id="results" class="maps-results">
+		<section class="maps-panel">
+			<h2>Events</h2>
+			<div id="eventList" class="maps-panel-list"></div>
+		</section>
+
+		<section class="maps-panel">
+			<h2>Places</h2>
+			<div id="placeList" class="maps-panel-list"></div>
+		</section>
+	</div>
 </div>
-
-<script>
-let markers = [];
-let placeMarkers = [];
-let map;
-let directionsService;
-let directionsRenderer;
-let originAutocomplete;
-let destinationAutocomplete;
-
-const memphisBounds = {
-    north: 35.3,
-    south: 35.0,
-    west: -90.2,
-    east: -89.8,
-};
-
-function clearMarkers(list) {
-    list.forEach(m => m.setMap(null));
-}
-
-function groupByVenue(events) {
-    const groups = {};
-
-    events.forEach(event => {
-        if (!event.lat || !event.lng) return;
-
-        const key = `${parseFloat(event.lat).toFixed(4)},${parseFloat(event.lng).toFixed(4)}`;
-
-        if (!groups[key]) {
-            groups[key] = {
-                lat: event.lat,
-                lng: event.lng,
-                venue: event.venue,
-                events: []
-            };
-        }
-
-        groups[key].events.push(event);
-    });
-
-    return Object.values(groups);
-}
-
-function filterOpenPlaces(places) {
-    return places.filter(p => p.open_now === true);
-}
-
-async function applyFilters() {
-    await loadEvents();
-    await loadPlaces();
-}
-
-function renderEventList(groups) {
-    const container = document.getElementById("eventList");
-
-    if (groups.length === 0) {
-        container.innerHTML = "<p>No events found</p>";
-        return;
-    }
-
-    container.innerHTML = groups.map(group => {
-        const events = group.events
-            .sort((a, b) => new Date(a.date) - new Date(b.date))
-            .map(e => `<li>${e.name} (${new Date(e.date).toLocaleDateString()})</li>`)
-            .join("");
-
-        return `
-            <div style="margin-bottom:15px; padding:10px; border:1px solid #ccc;">
-                <strong>${group.venue}</strong>
-                <ul>${events}</ul>
-            </div>
-        `;
-    }).join("");
-}
-
-function renderPlaceList(places) {
-    const container = document.getElementById("placeList");
-
-    if (places.length === 0) {
-        container.innerHTML = "<p>No places found</p>";
-        return;
-    }
-
-    container.innerHTML = places.map(p => `
-        <div style="margin-bottom:10px; padding:10px; border:1px solid #ccc;">
-            <strong>${p.name}</strong><br>
-            ${p.address || ""}<br>
-            Rating: ${p.rating || "N/A"}
-        </div>
-    `).join("");
-}
-
-
-async function loadEvents() {
-    clearMarkers(markers);
-    markers = [];
-
-    const start = document.getElementById("startDate").value;
-    const end = document.getElementById("endDate").value;
-    const classification = document.getElementById("classification").value;
-
-    function formatDate(date, endOfDay = false) {
-        if (!date) return null;
-
-        const d = new Date(date);
-        if (isNaN(d)) return null;
-
-        d.setUTCHours(endOfDay ? 23 : 0, endOfDay ? 59 : 0, endOfDay ? 59 : 0);
-        return d.toISOString().split('.')[0] + "Z";
-    }
-
-    let url = "/events";
-    const params = [];
-
-    const startISO = formatDate(start);
-    const endISO = formatDate(end, true);
-
-    if (startISO) params.push(`start=${startISO}`);
-    if (endISO) params.push(`end=${endISO}`);
-    if (classification) params.push(`classification=${classification}`);
-
-    if (params.length > 0) {
-        url += "?" + params.join("&");
-    }
-
-    const response = await fetch(url);
-    let events = await response.json();
-
-    const grouped = groupByVenue(events);
-    renderEventList(grouped);
-    const infoWindow = new google.maps.InfoWindow();
-
-    grouped.forEach(group => {
-        const marker = new google.maps.Marker({
-            position: {
-                lat: parseFloat(group.lat),
-                lng: parseFloat(group.lng)
-            },
-            map: map,
-            title: group.venue,
-            label: String(group.events.length)
-        });
-
-        marker.addListener("click", () => {
-            const sorted = group.events.sort(
-                (a, b) => new Date(a.date) - new Date(b.date)
-            );
-
-            const list = sorted.map(e => {
-                const eventDate = new Date(e.date).toLocaleDateString();
-
-                return `
-                    <li>
-                        <strong>${e.name}</strong><br>
-                        ${eventDate}
-                    </li>
-                `;
-            }).join("");
-
-            infoWindow.setContent(`
-                <div style="max-width:250px">
-                    <h3>${group.venue}</h3>
-                    <ul>${list}</ul>
-                </div>
-            `);
-
-            infoWindow.open(map, marker);
-        });
-
-        markers.push(marker);
-    });
-}
-
-async function loadPlaces() {
-    const infoWindow = new google.maps.InfoWindow();
-    clearMarkers(placeMarkers);
-    placeMarkers = [];
-
-    const bounds = map.getBounds();
-    const center = map.getCenter();
-    const ne = bounds.getNorthEast();
-    const lat = center.lat();
-    const lng = center.lng();    
-    const radius = google.maps.geometry.spherical.computeDistanceBetween(center, ne);
-    const type = document.getElementById("placeType").value;
-
-    let url = `/places?lat=${lat}&lng=${lng}&radius=${radius}&type=${type}`;
-
-    const res = await fetch(url);
-    const places = await res.json();
-    const openPlaces = filterOpenPlaces(places);
-    renderPlaceList(openPlaces);
-
-    openPlaces.forEach(place => {
-        if (!place.lat || !place.lng) return;
-
-        const marker = new google.maps.Marker({
-            position: {
-                lat: parseFloat(place.lat),
-                lng: parseFloat(place.lng)
-            },
-            map: map,
-            title: place.name,
-            icon: "http://maps.google.com/mapfiles/ms/icons/green-dot.png"
-        });
-
-        marker.addListener("click", () => {
-            infoWindow.setContent(`
-                <div style="max-width:200px">
-                <strong>${place.name}</strong><br>
-                ${place.address || ""}<br>
-                ${place.rating || "N/A"}
-                </div>
-            `);
-            infoWindow.open(map, marker);
-        });
-
-        placeMarkers.push(marker);
-    });
-}
-
-function initMap() {
-    map = new google.maps.Map(document.getElementById("map"), {
-        center: { lat: 35.1495, lng: -90.0490 },
-        zoom: 12,
-        restriction: {
-            latLngBounds: memphisBounds,
-            strictBounds: true,
-        }
-    });
-
-    directionsService = new google.maps.DirectionsService();
-    directionsRenderer = new google.maps.DirectionsRenderer();
-    directionsRenderer.setMap(map);
-
-    const options = {
-        bounds: memphisBounds,
-        strictBounds: true,
-    };
-
-    originAutocomplete = new google.maps.places.Autocomplete(
-        document.getElementById("origin"),
-        options
-    );
-
-    destinationAutocomplete = new google.maps.places.Autocomplete(
-        document.getElementById("destination"),
-        options
-    );
-
-    google.maps.event.addListenerOnce(map, 'idle', () => {
-        loadEvents();
-        loadPlaces();
-    });
-}
-
-function getDirections() {
-    const origin = document.getElementById("origin").value;
-    const destination = document.getElementById("destination").value;
-
-    directionsService.route({
-        origin,
-        destination,
-        travelMode: "DRIVING",
-    }, (result, status) => {
-        if (status === "OK") {
-            directionsRenderer.setDirections(result);
-        } else {
-            alert("Directions failed: " + status);
-        }
-    });
-}
-</script>
-
-<script async
-src="https://maps.googleapis.com/maps/api/js?key=<%= ENV['GOOGLE_API_KEY'] %>&libraries=places,geometry&callback=initMap">
-</script>

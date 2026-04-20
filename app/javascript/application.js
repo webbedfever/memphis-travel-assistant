@@ -6,6 +6,9 @@ import "@popperjs/core"
 import "bootstrap"
 import autosize from "autosize"
 
+import "./maps/index";
+import "./planner/index";
+
 document.addEventListener("turbo:load", () => {
   const popoverTriggerList = document.querySelectorAll('[data-bs-toggle="popover"]')
   const popoverList = [...popoverTriggerList].map(

@@ -1,0 +1,31 @@
+name: Rails CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    env:
+      GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
+      TICKETMASTER_API_KEY: ${{ secrets.TICKETMASTER_API_KEY }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: 3.2
+
+      - name: Install dependencies
+        run: bundle install
+
+      - name: Run tests / server check
+        run: |
+          echo "Google key is set: $GOOGLE_API_KEY"
+          echo "Ticketmaster key is set: $TICKETMASTER_API_KEY"

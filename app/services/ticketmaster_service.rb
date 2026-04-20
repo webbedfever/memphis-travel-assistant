@@ -38,13 +38,18 @@ class TicketmasterService
             venue = event.dig('_embedded', 'venues', 0)
             lat = venue&.dig('location', 'latitude')
             lng = venue&.dig('location', 'longitude')
+            local_date = event.dig('dates', 'start', 'localDate')
+            local_time = event.dig('dates', 'start', 'localTime')
+            starts_at = [local_date, local_time].compact.join("T").presence || local_date
 
             {
                 name: event['name'],
                 venue: venue&.dig('name') || "Unknown venue",
                 lat: lat,
                 lng: lng,
-                date: event.dig('dates', 'start', 'localDate'),
+                date: local_date,
+                time: local_time,
+                starts_at: starts_at,
                 classification: event.dig('classifications', 0, 'segment', 'name')
             }
         end.compact

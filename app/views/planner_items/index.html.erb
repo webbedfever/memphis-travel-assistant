@@ -1,0 +1,48 @@
+<h1>My Planner</h1>
+
+<% if @planner_items.any? %>
+    <% @planner_items.group_by { |item| item.start_time&.to_date || item.created_at.to_date }.each do |date, items| %>
+		<div class="planner-day">
+			<h2><%= date.strftime("%A, %B %d, %Y") %></h2>
+
+			<% items.each do |item| %>
+				<div class="planner-item">
+					<strong><%= item.title %></strong>
+					<span>(<%= item.item_type.capitalize %>)</span>
+
+					<% if item.start_time.present? %>
+						<div>
+							<% ticketmaster_time_known = item.external_id.to_s.match?(/T\d{2}:\d{2}/) || !item.start_time.strftime("%H:%M:%S").eql?("00:00:00") %>
+							<% time_unknown = item.source == "ticketmaster" && !ticketmaster_time_known %>
+							Time: <%= time_unknown ? "TBA" : item.start_time.strftime("%I:%M %p") %>
+							<% if item.end_time.present? && !time_unknown %>
+								- <%= item.end_time.strftime("%I:%M %p") %>
+							<% end %>
+						</div>
+					<% end %>
+
+					<% if item.location_name.present? %>
+						<div>Location: <%= item.location_name %></div>
+					<% end %>
+
+					<% if item.address.present? %>
+						<div>Address: <%= item.address %></div>
+					<% end %>
+
+					<% if item.notes.present? %>
+						<div>Notes: <%= item.notes %></div>
+					<% end %>
+
+					<button
+                        type="button"
+						class="delete-planner-item"
+						data-planner-item-id="<%= item.id %>">
+						Remove
+					</button>
+				</div>
+			<% end %>
+		</div>
+	<% end %>
+<% else %>
+	<p>No planner items saved yet.</p>
+<% end %>

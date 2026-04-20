@@ -121,3 +121,4 @@ gem 'htmlbeautifier', require: false, group: %i[development test]
 
 gem "google_maps_service", "~> 0.4.2"
 gem 'httparty'
+gem 'dotenv-rails', groups: [:development, :test]

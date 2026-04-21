@@ -1,4 +1,13 @@
-import { clearMarkers, groupByVenue, formatDate, formatEventTime } from "maps/helpers";
+import {
+	clearMarkers,
+	escapeHtml,
+	formatDate,
+	formatEventTime,
+	groupByVenue,
+	normalizeRange,
+	sanitizeUrl,
+	timeToMinutes
+} from "maps/helpers";
 import { bindPlannerButtons, syncPlannerButtons } from "maps/planner_state";
 
 export default class EventsController {
@@ -21,19 +30,16 @@ export default class EventsController {
 		const endTime = document.getElementById("endTime").value;
 		const classification = document.getElementById("classification").value;
 
-		let url = "/events";
-		const params = [];
-
 		const startISO = formatDate(start);
 		const endISO = formatDate(end, true);
+		const params = new URLSearchParams();
 
-		if (startISO) params.push(`start=${encodeURIComponent(startISO)}`);
-		if (endISO) params.push(`end=${encodeURIComponent(endISO)}`);
-		if (classification) params.push(`classification=${encodeURIComponent(classification)}`);
+		if (startISO) params.set("start", startISO);
+		if (endISO) params.set("end", endISO);
+		if (classification) params.set("classification", classification);
 
-		if (params.length > 0) {
-			url += `?${params.join("&")}`;
-		}
+		const query = params.toString();
+		const url = query ? `/events?${query}` : "/events";
 
 		try {
 			const response = await fetch(url);
@@ -63,7 +69,7 @@ export default class EventsController {
 			const items = group.events
 				.sort((a, b) => new Date(a.date) - new Date(b.date))
 				.map(event => {
-					const ticketmasterUrl = this.sanitizeUrl(event.ticketmaster_url);
+					const ticketmasterUrl = sanitizeUrl(event.ticketmaster_url);
 					const venueAddress = group.address || event.venue_address;
 
 					const payload = encodeURIComponent(JSON.stringify({
@@ -105,7 +111,7 @@ export default class EventsController {
 			return `
 				<div class="maps-group-card">
 					<strong class="maps-group-title">${group.venue}</strong>
-					${group.address ? `<div class="maps-result-meta"><span>${this.escapeHtml(group.address)}</span></div>` : ""}
+					${group.address ? `<div class="maps-result-meta"><span>${escapeHtml(group.address)}</span></div>` : ""}
 					<ul>${items}</ul>
 				</div>
 			`;
@@ -141,7 +147,7 @@ export default class EventsController {
 				this.infoWindow.setContent(`
 					<div style="max-width:250px">
 						<h3>${group.venue}</h3>
-						${group.address ? `${this.escapeHtml(group.address)}<br>` : ""}
+						${group.address ? `${escapeHtml(group.address)}<br>` : ""}
 						<ul>${items}</ul>
 					</div>
 				`);
@@ -161,14 +167,14 @@ export default class EventsController {
 	filterEvents(events, filters) {
 		if (!filters.startTime && !filters.endTime) return events;
 
-		const startMinute = this.timeToMinutes(filters.startTime || "00:00");
-		const endMinute = this.timeToMinutes(filters.endTime || "23:59");
+		const startMinute = timeToMinutes(filters.startTime || "00:00");
+		const endMinute = timeToMinutes(filters.endTime || "23:59");
 		if (startMinute === null || endMinute === null) return events;
 
-		const ranges = this.normalizeRange(startMinute, endMinute);
+		const ranges = normalizeRange(startMinute, endMinute);
 
 		return events.filter(event => {
-			const eventMinute = this.timeToMinutes((event.time || "").slice(0, 5));
+			const eventMinute = timeToMinutes((event.time || "").slice(0, 5));
 			if (eventMinute === null) return false;
 
 			return ranges.some(range => (
@@ -177,54 +183,10 @@ export default class EventsController {
 		});
 	}
 
-	normalizeRange(startMinute, endMinute) {
-		if (endMinute >= startMinute) {
-			return [{ start: startMinute, end: endMinute }];
-		}
-
-		return [
-			{ start: startMinute, end: 24 * 60 },
-			{ start: 0, end: endMinute }
-		];
-	}
-
-	timeToMinutes(time) {
-		const match = time.match(/^(\d{2}):(\d{2})$/);
-		if (!match) return null;
-
-		const hours = Number(match[1]);
-		const minutes = Number(match[2]);
-		if (hours > 23 || minutes > 59) return null;
-
-		return (hours * 60) + minutes;
-	}
-
 	renderTicketmasterInfoWindowLink(event) {
-		const ticketmasterUrl = this.sanitizeUrl(event.ticketmaster_url);
+		const ticketmasterUrl = sanitizeUrl(event.ticketmaster_url);
 		if (!ticketmasterUrl) return "";
 
 		return `<br><a href="${ticketmasterUrl}" target="_blank" rel="noopener">Ticketmaster</a>`;
-	}
-
-	sanitizeUrl(url) {
-		if (!url) return "";
-
-		try {
-			const parsed = new URL(url);
-			if (!["http:", "https:"].includes(parsed.protocol)) return "";
-			return this.escapeHtml(parsed.href);
-		} catch (_error) {
-			return "";
-		}
-	}
-
-	escapeHtml(value) {
-		return String(value).replace(/[&<>"']/g, character => ({
-			"&": "&amp;",
-			"<": "&lt;",
-			">": "&gt;",
-			"\"": "&quot;",
-			"'": "&#39;"
-		})[character]);
 	}
 }

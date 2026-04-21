@@ -1,4 +1,4 @@
-import { clearMarkers } from "maps/helpers";
+import { clearMarkers, escapeHtml, normalizeRange, sanitizeUrl, timeToMinutes } from "maps/helpers";
 import { bindPlannerButtons, syncPlannerButtons } from "maps/planner_state";
 
 export default class PlacesController {
@@ -28,19 +28,14 @@ export default class PlacesController {
 		const endTime = document.getElementById("endTime").value;
 		const openNowOnly = document.getElementById("openNowButton").getAttribute("aria-pressed") === "true";
 
-		const params = [
-			`lat=${encodeURIComponent(lat)}`,
-			`lng=${encodeURIComponent(lng)}`,
-			`radius=${encodeURIComponent(radius)}`
-		];
+		const params = new URLSearchParams({ lat, lng, radius });
 
-		if (type) params.push(`type=${encodeURIComponent(type)}`);
-		if (date) params.push(`date=${encodeURIComponent(date)}`);
-
-		const url = `/places?${params.join("&")}`;
+		if (type) params.set("type", type);
+		if (date) params.set("date", date);
+		const query = params.toString();
 
 		try {
-			const response = await fetch(url);
+			const response = await fetch(`/places?${query}`);
 			if (!response.ok) throw new Error(`Request failed: ${response.status}`);
 
 			const places = this.filterPlaces(await response.json(), {
@@ -68,14 +63,14 @@ export default class PlacesController {
 		}
 
 		container.innerHTML = places.map(place => {
-			const name = this.escapeHtml(place.name || "Unnamed place");
-			const address = this.escapeHtml(place.address || "Address unavailable");
-			const rating = this.escapeHtml(place.rating || "N/A");
-			const hours = this.escapeHtml(this.formatHours(place));
-			const status = this.escapeHtml(this.formatOpenStatus(place));
-			const phone = this.escapeHtml(place.phone || "");
-			const website = this.sanitizeUrl(place.website);
-			const googleUrl = this.sanitizeUrl(place.google_url);
+			const name = escapeHtml(place.name || "Unnamed place");
+			const address = escapeHtml(place.address || "Address unavailable");
+			const rating = escapeHtml(place.rating || "N/A");
+			const hours = escapeHtml(this.formatHours(place));
+			const status = escapeHtml(this.formatOpenStatus(place));
+			const phone = escapeHtml(place.phone || "");
+			const website = sanitizeUrl(place.website);
+			const googleUrl = sanitizeUrl(place.google_url);
 
 			const payload = encodeURIComponent(JSON.stringify({
 				title: place.name,
@@ -142,11 +137,11 @@ export default class PlacesController {
 			marker.addListener("click", () => {
 				this.infoWindow.setContent(`
 					<div style="max-width:200px">
-						<strong>${this.escapeHtml(place.name || "Unnamed place")}</strong><br>
-						${this.escapeHtml(place.address || "")}<br>
-						Rating: ${this.escapeHtml(place.rating || "N/A")}<br>
-						${this.escapeHtml(this.formatOpenStatus(place))}<br>
-						${this.escapeHtml(this.formatHours(place))}
+						<strong>${escapeHtml(place.name || "Unnamed place")}</strong><br>
+						${escapeHtml(place.address || "")}<br>
+						Rating: ${escapeHtml(place.rating || "N/A")}<br>
+						${escapeHtml(this.formatOpenStatus(place))}<br>
+						${escapeHtml(this.formatHours(place))}
 					</div>
 				`);
 
@@ -180,11 +175,11 @@ export default class PlacesController {
 		if (Number.isNaN(date.getTime())) return false;
 
 		const day = date.getDay();
-		const startMinute = this.timeToMinutes(filters.startTime || "00:00");
-		const endMinute = this.timeToMinutes(filters.endTime || "23:59");
+		const startMinute = timeToMinutes(filters.startTime || "00:00");
+		const endMinute = timeToMinutes(filters.endTime || "23:59");
 		if (startMinute === null || endMinute === null) return false;
 
-		const requestedRanges = this.normalizeRange(startMinute, endMinute);
+		const requestedRanges = normalizeRange(startMinute, endMinute);
 		const openRanges = place.hours_periods.flatMap(period => this.periodRangesForDay(period, day));
 
 		return requestedRanges.every(requestedRange => (
@@ -213,28 +208,6 @@ export default class PlacesController {
 		if (closeDay === day) ranges.push({ start: 0, end: closeMinute });
 
 		return ranges;
-	}
-
-	normalizeRange(startMinute, endMinute) {
-		if (endMinute >= startMinute) {
-			return [{ start: startMinute, end: endMinute }];
-		}
-
-		return [
-			{ start: startMinute, end: 24 * 60 },
-			{ start: 0, end: endMinute }
-		];
-	}
-
-	timeToMinutes(time) {
-		const match = time.match(/^(\d{2}):(\d{2})$/);
-		if (!match) return null;
-
-		const hours = Number(match[1]);
-		const minutes = Number(match[2]);
-		if (hours > 23 || minutes > 59) return null;
-
-		return (hours * 60) + minutes;
 	}
 
 	timeTextToMinutes(time) {
@@ -267,27 +240,5 @@ export default class PlacesController {
 		if (links.length === 0) return "";
 
 		return `<div class="maps-result-links">${links.join("")}</div>`;
-	}
-
-	sanitizeUrl(url) {
-		if (!url) return "";
-
-		try {
-			const parsed = new URL(url);
-			if (!["http:", "https:"].includes(parsed.protocol)) return "";
-			return this.escapeHtml(parsed.href);
-		} catch (_error) {
-			return "";
-		}
-	}
-
-	escapeHtml(value) {
-		return String(value).replace(/[&<>"']/g, character => ({
-			"&": "&amp;",
-			"<": "&lt;",
-			">": "&gt;",
-			"\"": "&quot;",
-			"'": "&#39;"
-		})[character]);
 	}
 }

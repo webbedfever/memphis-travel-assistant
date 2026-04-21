@@ -20,4 +20,15 @@ module ApplicationHelper
       ''
     end
   end
+
+  def safe_external_url(url)
+    return nil if url.blank?
+
+    parsed_url = URI.parse(url)
+    return parsed_url.to_s if parsed_url.is_a?(URI::HTTP) || parsed_url.is_a?(URI::HTTPS)
+
+    nil
+  rescue URI::InvalidURIError
+    nil
+  end
 end

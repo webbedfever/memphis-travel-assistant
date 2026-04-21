@@ -1,4 +1,13 @@
-import { clearMarkers, groupByVenue, formatDate, formatEventTime } from "maps/helpers";
+import {
+	clearMarkers,
+	escapeHtml,
+	formatDate,
+	formatEventTime,
+	groupByVenue,
+	normalizeRange,
+	sanitizeUrl,
+	timeToMinutes
+} from "maps/helpers";
 import { bindPlannerButtons, syncPlannerButtons } from "maps/planner_state";
 
 export default class EventsController {
@@ -17,27 +26,26 @@ export default class EventsController {
 
 		const start = document.getElementById("startDate").value;
 		const end = document.getElementById("endDate").value;
+		const startTime = document.getElementById("startTime").value;
+		const endTime = document.getElementById("endTime").value;
 		const classification = document.getElementById("classification").value;
-
-		let url = "/events";
-		const params = [];
 
 		const startISO = formatDate(start);
 		const endISO = formatDate(end, true);
+		const params = new URLSearchParams();
 
-		if (startISO) params.push(`start=${encodeURIComponent(startISO)}`);
-		if (endISO) params.push(`end=${encodeURIComponent(endISO)}`);
-		if (classification) params.push(`classification=${encodeURIComponent(classification)}`);
+		if (startISO) params.set("start", startISO);
+		if (endISO) params.set("end", endISO);
+		if (classification) params.set("classification", classification);
 
-		if (params.length > 0) {
-			url += `?${params.join("&")}`;
-		}
+		const query = params.toString();
+		const url = query ? `/events?${query}` : "/events";
 
 		try {
 			const response = await fetch(url);
 			if (!response.ok) throw new Error(`Request failed: ${response.status}`);
 
-			const events = await response.json();
+			const events = this.filterEvents(await response.json(), { startTime, endTime });
 			const grouped = groupByVenue(events);
 
 			this.renderList(grouped);
@@ -61,16 +69,21 @@ export default class EventsController {
 			const items = group.events
 				.sort((a, b) => new Date(a.date) - new Date(b.date))
 				.map(event => {
+					const ticketmasterUrl = sanitizeUrl(event.ticketmaster_url);
+					const venueAddress = group.address || event.venue_address;
+
 					const payload = encodeURIComponent(JSON.stringify({
 						title: event.name,
 						item_type: "event",
 						location_name: group.venue,
+						address: venueAddress,
 						latitude: event.lat,
 						longitude: event.lng,
 						start_time: event.starts_at,
 						external_id: `${event.name}-${event.starts_at}-${group.venue}`,
 						source: "ticketmaster",
-						category: event.classification
+						category: event.classification,
+						ticketmaster_url: event.ticketmaster_url
 					}));
 
 					return `
@@ -81,6 +94,7 @@ export default class EventsController {
 									<span>${new Date(event.date).toLocaleDateString()}</span>
 									<span>${formatEventTime(event.time)}</span>
 								</div>
+								${ticketmasterUrl ? `<div class="maps-result-links"><a href="${ticketmasterUrl}" target="_blank" rel="noopener">Ticketmaster</a></div>` : ""}
 							</div>
 							<button
 								type="button"
@@ -97,6 +111,7 @@ export default class EventsController {
 			return `
 				<div class="maps-group-card">
 					<strong class="maps-group-title">${group.venue}</strong>
+					${group.address ? `<div class="maps-result-meta"><span>${escapeHtml(group.address)}</span></div>` : ""}
 					<ul>${items}</ul>
 				</div>
 			`;
@@ -124,6 +139,7 @@ export default class EventsController {
 						<li>
 							<strong>${event.name}</strong><br>
 							${new Date(event.date).toLocaleDateString()} at ${formatEventTime(event.time)}
+							${this.renderTicketmasterInfoWindowLink(event)}
 						</li>
 					`)
 					.join("");
@@ -131,6 +147,7 @@ export default class EventsController {
 				this.infoWindow.setContent(`
 					<div style="max-width:250px">
 						<h3>${group.venue}</h3>
+						${group.address ? `${escapeHtml(group.address)}<br>` : ""}
 						<ul>${items}</ul>
 					</div>
 				`);
@@ -145,5 +162,31 @@ export default class EventsController {
 	bindPlannerButtons() {
 		const container = document.getElementById("eventList");
 		bindPlannerButtons(container);
+	}
+
+	filterEvents(events, filters) {
+		if (!filters.startTime && !filters.endTime) return events;
+
+		const startMinute = timeToMinutes(filters.startTime || "00:00");
+		const endMinute = timeToMinutes(filters.endTime || "23:59");
+		if (startMinute === null || endMinute === null) return events;
+
+		const ranges = normalizeRange(startMinute, endMinute);
+
+		return events.filter(event => {
+			const eventMinute = timeToMinutes((event.time || "").slice(0, 5));
+			if (eventMinute === null) return false;
+
+			return ranges.some(range => (
+				eventMinute >= range.start && eventMinute <= range.end
+			));
+		});
+	}
+
+	renderTicketmasterInfoWindowLink(event) {
+		const ticketmasterUrl = sanitizeUrl(event.ticketmaster_url);
+		if (!ticketmasterUrl) return "";
+
+		return `<br><a href="${ticketmasterUrl}" target="_blank" rel="noopener">Ticketmaster</a>`;
 	}
 }

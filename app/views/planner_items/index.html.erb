@@ -1,48 +1,138 @@
-<h1>My Planner</h1>
+<div class="planner-page container">
+	<div class="planner-header">
+		<div>
+			<p class="planner-eyebrow">Memphis Travel Assistant</p>
+			<h1>My Planner</h1>
+		</div>
+		<span class="planner-total"><%= pluralize(@planner_items.size, "saved item") %></span>
+	</div>
 
-<% if @planner_items.any? %>
-    <% @planner_items.group_by { |item| item.start_time&.to_date || item.created_at.to_date }.each do |date, items| %>
-		<div class="planner-day">
-			<h2><%= date.strftime("%A, %B %d, %Y") %></h2>
+	<% if @planner_items.any? %>
+		<div class="planner-timeline">
+			<% @planner_items.group_by { |item| item.start_time&.to_date || item.created_at.to_date }.each do |date, items| %>
+				<section class="planner-day">
+					<div class="planner-day-heading">
+						<h2><%= date.strftime("%A, %B %d, %Y") %></h2>
+						<span><%= pluralize(items.size, "item") %></span>
+					</div>
 
-			<% items.each do |item| %>
-				<div class="planner-item">
-					<strong><%= item.title %></strong>
-					<span>(<%= item.item_type.capitalize %>)</span>
-
-					<% if item.start_time.present? %>
-						<div>
-							<% ticketmaster_time_known = item.external_id.to_s.match?(/T\d{2}:\d{2}/) || !item.start_time.strftime("%H:%M:%S").eql?("00:00:00") %>
+					<div class="planner-day-list">
+						<% items.each do |item| %>
+							<% ticketmaster_time_known = item.external_id.to_s.match?(/T\d{2}:\d{2}/) || item.start_time.blank? || !item.start_time.strftime("%H:%M:%S").eql?("00:00:00") %>
 							<% time_unknown = item.source == "ticketmaster" && !ticketmaster_time_known %>
-							Time: <%= time_unknown ? "TBA" : item.start_time.strftime("%I:%M %p") %>
-							<% if item.end_time.present? && !time_unknown %>
-								- <%= item.end_time.strftime("%I:%M %p") %>
-							<% end %>
-						</div>
-					<% end %>
+							<% website_url = safe_external_url(item.website) %>
+							<% google_url = safe_external_url(item.google_url) %>
+							<% ticketmaster_url = safe_external_url(item.ticketmaster_url) %>
 
-					<% if item.location_name.present? %>
-						<div>Location: <%= item.location_name %></div>
-					<% end %>
+							<article class="planner-item">
+								<div class="planner-item-main">
+									<div class="planner-item-copy">
+										<div class="planner-item-title-row">
+											<span class="planner-type-badge"><%= item.item_type.capitalize %></span>
+											<h3><%= item.title %></h3>
+										</div>
 
-					<% if item.address.present? %>
-						<div>Address: <%= item.address %></div>
-					<% end %>
+										<div class="planner-quick-meta">
+											<% if item.start_time.present? %>
+												<span>
+													<%= time_unknown ? "Time TBA" : item.start_time.strftime("%I:%M %p") %>
+													<% if item.end_time.present? && !time_unknown %>
+														- <%= item.end_time.strftime("%I:%M %p") %>
+													<% end %>
+												</span>
+											<% end %>
 
-					<% if item.notes.present? %>
-						<div>Notes: <%= item.notes %></div>
-					<% end %>
+											<% if item.location_name.present? %>
+												<span><%= item.location_name %></span>
+											<% end %>
+										</div>
+									</div>
 
-					<button
-                        type="button"
-						class="delete-planner-item"
-						data-planner-item-id="<%= item.id %>">
-						Remove
-					</button>
-				</div>
+									<button
+										type="button"
+										class="delete-planner-item"
+										data-planner-item-id="<%= item.id %>">
+										Remove
+									</button>
+								</div>
+
+								<details class="planner-item-details">
+									<summary>Details</summary>
+
+									<div class="planner-detail-grid">
+										<% if item.address.present? %>
+											<div class="planner-detail-row">
+												<span>Address</span>
+												<strong><%= item.address %></strong>
+											</div>
+										<% end %>
+
+										<% if item.category.present? %>
+											<div class="planner-detail-row">
+												<span>Category</span>
+												<strong><%= item.category %></strong>
+											</div>
+										<% end %>
+
+										<% if item.item_type == "place" %>
+											<% if item.rating.present? %>
+												<div class="planner-detail-row">
+													<span>Rating</span>
+													<strong><%= item.rating %></strong>
+												</div>
+											<% end %>
+
+											<% unless item.open_now.nil? %>
+												<div class="planner-detail-row">
+													<span>Status</span>
+													<strong><%= item.open_now? ? "Open now" : "Closed now" %></strong>
+												</div>
+											<% end %>
+
+											<% if item.hours_for_day.present? || item.hours_day.present? %>
+												<div class="planner-detail-row">
+													<span>Hours</span>
+													<strong><%= item.hours_for_day.presence || "#{item.hours_day} hours unavailable" %></strong>
+												</div>
+											<% end %>
+
+											<% if item.phone.present? %>
+												<div class="planner-detail-row">
+													<span>Phone</span>
+													<strong><%= item.phone %></strong>
+												</div>
+											<% end %>
+										<% end %>
+
+										<% if item.notes.present? %>
+											<div class="planner-detail-row planner-detail-row-wide">
+												<span>Notes</span>
+												<strong><%= item.notes %></strong>
+											</div>
+										<% end %>
+
+										<% if website_url.present? || google_url.present? || ticketmaster_url.present? %>
+											<div class="planner-links">
+												<% if website_url.present? %>
+													<%= link_to "Website", website_url, target: "_blank", rel: "noopener" %>
+												<% end %>
+												<% if google_url.present? %>
+													<%= link_to "Google listing", google_url, target: "_blank", rel: "noopener" %>
+												<% end %>
+												<% if ticketmaster_url.present? %>
+													<%= link_to "Ticketmaster", ticketmaster_url, target: "_blank", rel: "noopener" %>
+												<% end %>
+											</div>
+										<% end %>
+									</div>
+								</details>
+							</article>
+						<% end %>
+					</div>
+				</section>
 			<% end %>
 		</div>
+	<% else %>
+		<div class="planner-empty">No planner items saved yet.</div>
 	<% end %>
-<% else %>
-	<p>No planner items saved yet.</p>
-<% end %>
+</div>

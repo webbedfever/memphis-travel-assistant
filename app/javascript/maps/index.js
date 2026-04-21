@@ -48,6 +48,28 @@ class MapsPage {
 		await this.loadAll();
 	}
 
+	async resetFilters() {
+		["startDate", "endDate", "startTime", "endTime", "classification", "placeType"].forEach(id => {
+			const input = document.getElementById(id);
+			if (input) input.value = "";
+		});
+
+		const openNowButton = document.getElementById("openNowButton");
+		if (openNowButton) openNowButton.setAttribute("aria-pressed", "false");
+
+		await this.loadAll();
+	}
+
+	async toggleOpenNowFilter() {
+		const button = document.getElementById("openNowButton");
+		if (!button || !this.placesController) return;
+
+		const pressed = button.getAttribute("aria-pressed") === "true";
+		button.setAttribute("aria-pressed", String(!pressed));
+
+		await this.placesController.load();
+	}
+
 	getDirections() {
 		if (!this.directionsController) return;
 		this.directionsController.getDirections();
@@ -65,7 +87,9 @@ class MapsPage {
 const app = new MapsPage();
 
 window.applyFilters = () => app.applyFilters();
+window.resetFilters = () => app.resetFilters();
 window.getDirections = () => app.getDirections();
+window.toggleOpenNowFilter = () => app.toggleOpenNowFilter();
 
 function loadGoogleMapsApi() {
 	if (window.google?.maps?.places && window.google.maps.geometry) {

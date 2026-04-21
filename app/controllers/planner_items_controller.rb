@@ -57,6 +57,13 @@ class PlannerItemsController < ApplicationController
 			:source,
 			:category,
 			:rating,
+			:open_now,
+			:hours_day,
+			:hours_for_day,
+			:phone,
+			:website,
+			:google_url,
+			:ticketmaster_url,
 			:notes
 		)
 	end
@@ -71,7 +78,16 @@ class PlannerItemsController < ApplicationController
 			:longitude,
 			:start_time,
 			:external_id,
-			:source
+			:source,
+			:category,
+			:rating,
+			:open_now,
+			:hours_day,
+			:hours_for_day,
+			:phone,
+			:website,
+			:google_url,
+			:ticketmaster_url
 		]
 	end
 end

@@ -45,13 +45,26 @@ class TicketmasterService
             {
                 name: event['name'],
                 venue: venue&.dig('name') || "Unknown venue",
+                venue_address: venue_address(venue),
                 lat: lat,
                 lng: lng,
                 date: local_date,
                 time: local_time,
                 starts_at: starts_at,
-                classification: event.dig('classifications', 0, 'segment', 'name')
+                classification: event.dig('classifications', 0, 'segment', 'name'),
+                ticketmaster_url: event['url']
             }
         end.compact
+    end
+
+    def self.venue_address(venue)
+        return nil if venue.blank?
+
+        [
+            venue.dig('address', 'line1'),
+            venue.dig('city', 'name'),
+            venue.dig('state', 'stateCode'),
+            venue['postalCode']
+        ].compact_blank.join(", ").presence
     end
 end

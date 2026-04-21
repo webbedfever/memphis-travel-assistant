@@ -2,6 +2,28 @@ export function clearMarkers(markers) {
 	markers.forEach(marker => marker.setMap(null));
 }
 
+export function escapeHtml(value) {
+	return String(value).replace(/[&<>"']/g, character => ({
+		"&": "&amp;",
+		"<": "&lt;",
+		">": "&gt;",
+		"\"": "&quot;",
+		"'": "&#39;"
+	})[character]);
+}
+
+export function sanitizeUrl(url) {
+	if (!url) return "";
+
+	try {
+		const parsed = new URL(url);
+		if (!["http:", "https:"].includes(parsed.protocol)) return "";
+		return escapeHtml(parsed.href);
+	} catch (_error) {
+		return "";
+	}
+}
+
 export function groupByVenue(events) {
 	const grouped = {};
 
@@ -15,6 +37,7 @@ export function groupByVenue(events) {
 				lat: event.lat,
 				lng: event.lng,
 				venue: event.venue,
+				address: event.venue_address,
 				events: []
 			};
 		}
@@ -23,10 +46,6 @@ export function groupByVenue(events) {
 	});
 
 	return Object.values(grouped);
-}
-
-export function filterOpenPlaces(places) {
-	return places.filter(place => place.open_now === true);
 }
 
 export function formatDate(date, endOfDay = false) {
@@ -54,4 +73,26 @@ export function formatEventTime(time) {
 		hour: "numeric",
 		minute: "2-digit"
 	});
+}
+
+export function timeToMinutes(time) {
+	const match = time.match(/^(\d{2}):(\d{2})$/);
+	if (!match) return null;
+
+	const hours = Number(match[1]);
+	const minutes = Number(match[2]);
+	if (hours > 23 || minutes > 59) return null;
+
+	return (hours * 60) + minutes;
+}
+
+export function normalizeRange(startMinute, endMinute) {
+	if (endMinute >= startMinute) {
+		return [{ start: startMinute, end: endMinute }];
+	}
+
+	return [
+		{ start: startMinute, end: 24 * 60 },
+		{ start: 0, end: endMinute }
+	];
 }

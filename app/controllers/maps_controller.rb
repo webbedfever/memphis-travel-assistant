@@ -30,7 +30,8 @@ class MapsController < ApplicationController
             params[:lat],
             params[:lng],
             params[:radius],
-            params[:type]
+            params[:type],
+            params[:date]
         )
 
         render json: places

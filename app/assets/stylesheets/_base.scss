@@ -1,0 +1,17 @@
+$alert-dismissible-padding-r: 4rem !default;
+
+label.required:after {
+  content:" *";
+}
+
+main {
+  margin-top: 20px;
+}
+
+.alert-dismissible {
+  padding-left: $alert-dismissible-padding-r;
+}
+
+body {
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+}

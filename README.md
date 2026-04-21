@@ -23,7 +23,7 @@
 -For guest users, automatically save planner data in localStorage (no manual save required)
 -Allow users to set a date and time for each planner item
 -Allow users to add events directly from the Ticketmaster API into the planner
--Provide an option to enable reminders/notifications for planner items (basic version is fine, e.g., browser notifications or simple alerts)
+-Provide an option to enable reminders/notifications for planner items 
 
 ### FRONTEND/UI UX
 Maintain consistent styling across all pages (colors, fonts, spacing, components,etc)

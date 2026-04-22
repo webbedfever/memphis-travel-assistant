@@ -64,7 +64,10 @@ class PlannerItemsController < ApplicationController
 			:website,
 			:google_url,
 			:ticketmaster_url,
-			:notes
+			:notes,
+			:reminder_enabled,
+			:reminder_at,
+			:reminder_minutes_before
 		)
 	end
 
@@ -87,7 +90,11 @@ class PlannerItemsController < ApplicationController
 			:phone,
 			:website,
 			:google_url,
-			:ticketmaster_url
+			:ticketmaster_url,
+			:reminder_enabled,
+			:reminder_at,
+			:reminder_minutes_before,
+			:reminder_sent_at
 		]
 	end
 end

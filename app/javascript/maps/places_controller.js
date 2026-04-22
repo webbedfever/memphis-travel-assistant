@@ -32,6 +32,7 @@ export default class PlacesController {
 
 		if (type) params.set("type", type);
 		if (date) params.set("date", date);
+		if (openNowOnly) params.set("open_now", "true");
 		const query = params.toString();
 
 		try {
@@ -79,7 +80,7 @@ export default class PlacesController {
 				address: place.address,
 				latitude: place.lat,
 				longitude: place.lng,
-				external_id: `google-place-${place.name}-${place.lat}-${place.lng}`,
+				external_id: place.place_id || `google-place-${place.name}-${place.lat}-${place.lng}`,
 				source: "google_places",
 				category: type || place.category,
 				rating: place.rating,

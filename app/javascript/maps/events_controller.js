@@ -1,4 +1,5 @@
 import {
+	bindDirectionAddressButtons,
 	clearMarkers,
 	escapeHtml,
 	formatDate,
@@ -111,13 +112,14 @@ export default class EventsController {
 			return `
 				<div class="maps-group-card">
 					<strong class="maps-group-title">${group.venue}</strong>
-					${group.address ? `<div class="maps-result-meta"><span>${escapeHtml(group.address)}</span></div>` : ""}
+					${group.address ? `<div class="maps-result-meta">${this.renderAddressButton(group.address)}</div>` : ""}
 					<ul>${items}</ul>
 				</div>
 			`;
 		}).join("");
 
 		syncPlannerButtons(container);
+		bindDirectionAddressButtons(container);
 	}
 
 	renderMarkers(groups) {
@@ -188,5 +190,19 @@ export default class EventsController {
 		if (!ticketmasterUrl) return "";
 
 		return `<br><a href="${ticketmasterUrl}" target="_blank" rel="noopener">Ticketmaster</a>`;
+	}
+
+	renderAddressButton(address) {
+		const safeAddress = escapeHtml(address);
+
+		return `
+			<button
+				type="button"
+				class="maps-address-button"
+				data-address="${safeAddress}"
+				title="Use as directions destination">
+				${safeAddress}
+			</button>
+		`;
 	}
 }

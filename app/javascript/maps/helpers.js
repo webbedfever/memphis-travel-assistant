@@ -24,6 +24,33 @@ export function sanitizeUrl(url) {
 	}
 }
 
+export function fillDirectionsDestination(address) {
+	const destination = document.getElementById("destination");
+	if (!destination || !address) return;
+
+	destination.value = address;
+	destination.dispatchEvent(new Event("input", { bubbles: true }));
+	destination.dispatchEvent(new Event("change", { bubbles: true }));
+
+	destination.closest(".maps-toolbar")?.scrollIntoView({
+		behavior: "smooth",
+		block: "center"
+	});
+
+	window.setTimeout(() => destination.focus(), 250);
+}
+
+export function bindDirectionAddressButtons(root = document) {
+	root.querySelectorAll(".maps-address-button").forEach(button => {
+		if (button.dataset.addressBound === "true") return;
+		button.dataset.addressBound = "true";
+
+		button.addEventListener("click", () => {
+			fillDirectionsDestination(button.dataset.address);
+		});
+	});
+}
+
 export function groupByVenue(events) {
 	const grouped = {};
 

@@ -1,4 +1,11 @@
-import { clearMarkers, escapeHtml, normalizeRange, sanitizeUrl, timeToMinutes } from "maps/helpers";
+import {
+	bindDirectionAddressButtons,
+	clearMarkers,
+	escapeHtml,
+	normalizeRange,
+	sanitizeUrl,
+	timeToMinutes
+} from "maps/helpers";
 import { bindPlannerButtons, syncPlannerButtons } from "maps/planner_state";
 
 export default class PlacesController {
@@ -66,6 +73,7 @@ export default class PlacesController {
 		container.innerHTML = places.map(place => {
 			const name = escapeHtml(place.name || "Unnamed place");
 			const address = escapeHtml(place.address || "Address unavailable");
+			const addressAction = place.address ? this.renderAddressButton(place.address) : `<span>${address}</span>`;
 			const rating = escapeHtml(place.rating || "N/A");
 			const hours = escapeHtml(this.formatHours(place));
 			const status = escapeHtml(this.formatOpenStatus(place));
@@ -98,7 +106,7 @@ export default class PlacesController {
 						<div class="maps-result-copy">
 							<strong>${name}</strong>
 							<div class="maps-result-meta">
-								<span>${address}</span>
+								${addressAction}
 								<span>Rating: ${rating}</span>
 								<span>${status}</span>
 								<span>${hours}</span>
@@ -119,6 +127,7 @@ export default class PlacesController {
 		}).join("");
 
 		syncPlannerButtons(container);
+		bindDirectionAddressButtons(container);
 	}
 
 	renderMarkers(places) {
@@ -241,5 +250,19 @@ export default class PlacesController {
 		if (links.length === 0) return "";
 
 		return `<div class="maps-result-links">${links.join("")}</div>`;
+	}
+
+	renderAddressButton(address) {
+		const safeAddress = escapeHtml(address);
+
+		return `
+			<button
+				type="button"
+				class="maps-address-button"
+				data-address="${safeAddress}"
+				title="Use as directions destination">
+				${safeAddress}
+			</button>
+		`;
 	}
 }

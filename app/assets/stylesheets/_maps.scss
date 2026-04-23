@@ -254,6 +254,25 @@
   overflow-wrap: anywhere;
 }
 
+.maps-address-button {
+  border: 1px solid #dbe7e4;
+  border-radius: 6px;
+  background: #f6f8fb;
+  color: #25405f;
+  padding: 4px 7px;
+  font: inherit;
+  font-weight: 650;
+  text-align: left;
+  overflow-wrap: anywhere;
+}
+
+.maps-address-button:hover,
+.maps-address-button:focus-visible {
+  border-color: #0f766e;
+  background: #eef7f6;
+  color: #0f766e;
+}
+
 .maps-result-links {
   display: flex;
   flex-wrap: wrap;

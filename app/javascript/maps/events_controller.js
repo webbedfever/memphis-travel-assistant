@@ -23,6 +23,7 @@ export default class EventsController {
 		this.markers = [];
 
 		const container = document.getElementById("eventList");
+		this.updateCountLabel("Loading...");
 		container.innerHTML = "<p>Loading events...</p>";
 
 		const start = document.getElementById("startDate").value;
@@ -49,10 +50,12 @@ export default class EventsController {
 			const events = this.filterEvents(await response.json(), { startTime, endTime });
 			const grouped = groupByVenue(events);
 
+			this.updateCountLabel(this.countLabel(events.length, "event"));
 			this.renderList(grouped);
 			this.renderMarkers(grouped);
 			this.bindPlannerButtons();
 		} catch (error) {
+			this.updateCountLabel("Unavailable");
 			container.innerHTML = "<p>Unable to load events.</p>";
 			console.error(error);
 		}
@@ -62,6 +65,7 @@ export default class EventsController {
 		const container = document.getElementById("eventList");
 
 		if (groups.length === 0) {
+			this.updateCountLabel(this.countLabel(0, "event"));
 			container.innerHTML = "<p>No events found</p>";
 			return;
 		}
@@ -204,5 +208,14 @@ export default class EventsController {
 				${safeAddress}
 			</button>
 		`;
+	}
+
+	updateCountLabel(label) {
+		const count = document.getElementById("eventCount");
+		if (count) count.textContent = label;
+	}
+
+	countLabel(total, noun) {
+		return `${total} ${noun}${total === 1 ? "" : "s"} available`;
 	}
 }

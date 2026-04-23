@@ -1,18 +1,40 @@
 <div class="maps-page container">
 	<div class="maps-header">
-		<div>
-			<p class="maps-eyebrow">Memphis Travel Assistant</p>
+		<div class="maps-header-copy">
+			<p class="maps-kicker">Maps</p>
 			<h1>Explore Memphis</h1>
+			<p class="maps-header-description">
+				Search the city visually, compare live events with nearby places, and build a route without leaving the map.
+			</p>
 		</div>
-		<span class="maps-header-meta">Events, places, and routes</span>
+		<div class="maps-header-meta">
+			<span>Events</span>
+			<span>Places</span>
+			<span>Routes</span>
+		</div>
 	</div>
 
 	<div class="maps-controls">
-		<div class="maps-toolbar" aria-label="Directions">
-			<input id="origin" placeholder="Start location">
-			<input id="destination" placeholder="Destination">
-			<button class="maps-action-button" onclick="getDirections()">Get Directions</button>
-		</div>
+		<section class="maps-surface maps-toolbar-panel">
+			<div class="maps-section-heading">
+				<div>
+					<p class="maps-section-kicker">Route Builder</p>
+					<h2>Get directions across Memphis</h2>
+				</div>
+			</div>
+
+			<div class="maps-toolbar" aria-label="Directions">
+				<input id="origin" placeholder="Start location" aria-label="Start location">
+				<input id="destination" placeholder="Destination" aria-label="Destination">
+				<select id="travelMode" aria-label="Mode of transport">
+					<option value="DRIVING">Driving</option>
+					<option value="WALKING">Walking</option>
+					<option value="BICYCLING">Bicycling</option>
+					<option value="TRANSIT">Transit</option>
+				</select>
+				<button class="maps-action-button" onclick="getDirections()">Get Directions</button>
+			</div>
+		</section>
 
 		<div
 			id="map"
@@ -20,50 +42,59 @@
 			data-google-maps-api-key="<%= ENV['GOOGLE_API_KEY'] %>"></div>
 	</div>
 
-	<div class="maps-filters">
-		<input type="date" id="startDate">
-		<input type="date" id="endDate">
-		<input type="time" id="startTime" aria-label="Start time">
-		<input type="time" id="endTime" aria-label="End time">
+	<section class="maps-surface maps-filter-panel">
+		<div class="maps-section-heading">
+			<div>
+				<p class="maps-section-kicker">Filter Results</p>
+				<h2>Refine what appears on the map</h2>
+			</div>
+		</div>
 
-		<select id="classification">
-			<option value="">All Events</option>
-			<option value="Music">Music</option>
-			<option value="Sports">Sports</option>
-			<option value="Arts & Theatre">Arts & Theatre</option>
-			<option value="Film">Film</option>
-			<option value="Miscellaneous">Misc</option>
-		</select>
+		<div class="maps-filters">
+			<input type="date" id="startDate" aria-label="Start date">
+			<input type="date" id="endDate" aria-label="End date">
+			<input type="time" id="startTime" aria-label="Start time">
+			<input type="time" id="endTime" aria-label="End time">
 
-		<select id="placeType">
-			<option value="">All Places</option>
-			<option value="restaurant">Restaurants</option>
-			<option value="cafe">Cafes</option>
-			<option value="bar">Bars</option>
-			<option value="tourist_attraction">Attractions</option>
-			<option value="museum">Museums</option>
-			<option value="park">Parks</option>
-			<option value="store">Stores</option>
-		</select>
+			<select id="classification" aria-label="Event classification">
+				<option value="">All Events</option>
+				<option value="Music">Music</option>
+				<option value="Sports">Sports</option>
+				<option value="Arts & Theatre">Arts & Theatre</option>
+				<option value="Film">Film</option>
+				<option value="Miscellaneous">Misc</option>
+			</select>
 
-		<button
-			type="button"
-			id="openNowButton"
-			class="maps-toggle-button"
-			aria-pressed="false"
-			onclick="toggleOpenNowFilter()">
-			Open Now
-		</button>
+			<select id="placeType" aria-label="Place type">
+				<option value="">All Places</option>
+				<option value="restaurant">Restaurants</option>
+				<option value="cafe">Cafes</option>
+				<option value="bar">Bars</option>
+				<option value="tourist_attraction">Attractions</option>
+				<option value="museum">Museums</option>
+				<option value="park">Parks</option>
+				<option value="store">Stores</option>
+			</select>
 
-		<button class="maps-action-button" onclick="applyFilters()">Apply Filters</button>
-		<button type="button" class="maps-reset-button" onclick="resetFilters()">Reset Filters</button>
-	</div>
+			<button
+				type="button"
+				id="openNowButton"
+				class="maps-toggle-button"
+				aria-pressed="false"
+				onclick="toggleOpenNowFilter()">
+				Open Now
+			</button>
+
+			<button class="maps-action-button" onclick="applyFilters()">Apply Filters</button>
+			<button type="button" class="maps-reset-button" onclick="resetFilters()">Reset Filters</button>
+		</div>
+	</section>
 
 	<div id="results" class="maps-results">
 		<section class="maps-panel">
 			<div class="maps-panel-heading">
 				<h2>Events</h2>
-				<span class="maps-panel-count">Nearby</span>
+				<span id="eventCount" class="maps-panel-count">0 available</span>
 			</div>
 			<div id="eventList" class="maps-panel-list"></div>
 		</section>
@@ -71,7 +102,7 @@
 		<section class="maps-panel">
 			<div class="maps-panel-heading">
 				<h2>Places</h2>
-				<span class="maps-panel-count">Local</span>
+				<span id="placeCount" class="maps-panel-count">0 available</span>
 			</div>
 			<div id="placeList" class="maps-panel-list"></div>
 		</section>

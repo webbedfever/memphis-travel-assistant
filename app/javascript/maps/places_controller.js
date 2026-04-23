@@ -20,6 +20,7 @@ export default class PlacesController {
 		this.markers = [];
 
 		const container = document.getElementById("placeList");
+		this.updateCountLabel("Loading...");
 		container.innerHTML = "<p>Loading places...</p>";
 
 		const bounds = this.mapController.getBounds();
@@ -53,10 +54,12 @@ export default class PlacesController {
 				openNowOnly
 			});
 
+			this.updateCountLabel(this.countLabel(places.length, "place"));
 			this.renderList(places, type);
 			this.renderMarkers(places);
 			this.bindPlannerButtons();
 		} catch (error) {
+			this.updateCountLabel("Unavailable");
 			container.innerHTML = "<p>Unable to load places.</p>";
 			console.error(error);
 		}
@@ -66,6 +69,7 @@ export default class PlacesController {
 		const container = document.getElementById("placeList");
 
 		if (places.length === 0) {
+			this.updateCountLabel(this.countLabel(0, "place"));
 			container.innerHTML = "<p>No places found</p>";
 			return;
 		}
@@ -264,5 +268,14 @@ export default class PlacesController {
 				${safeAddress}
 			</button>
 		`;
+	}
+
+	updateCountLabel(label) {
+		const count = document.getElementById("placeCount");
+		if (count) count.textContent = label;
+	}
+
+	countLabel(total, noun) {
+		return `${total} ${noun}${total === 1 ? "" : "s"} available`;
 	}
 }

@@ -1,0 +1,87 @@
+<main
+	class="weather-page container"
+	id="weatherPage"
+	data-signed-in="<%= user_signed_in? %>"
+	data-sign-in-path="<%= new_user_session_path %>">
+	<section class="weather-hero">
+		<div class="weather-hero-copy">
+			<p class="weather-kicker">Weather</p>
+			<h1>Memphis weather, planned for the day.</h1>
+			<p class="weather-lede">
+				Check current conditions, filter the forecast, and save weather prep suggestions straight into your planner.
+			</p>
+		</div>
+
+		<div class="weather-status-card">
+			<span>City</span>
+			<strong>Memphis, TN</strong>
+		</div>
+	</section>
+
+	<section class="weather-surface weather-filter-panel">
+		<div class="weather-section-heading">
+			<div>
+				<p class="weather-section-kicker">Forecast Filters</p>
+				<h2>Focus the forecast around your plans</h2>
+			</div>
+		</div>
+
+		<div class="weather-filters">
+			<input type="date" id="weatherDate" aria-label="Forecast date">
+			<input type="time" id="weatherTime" aria-label="Forecast time">
+
+			<select id="weatherView" aria-label="Forecast view">
+				<option value="hourly">Hourly forecast</option>
+				<option value="daily">Daily forecast</option>
+			</select>
+
+			<select id="weatherConditionFilter" aria-label="Weather condition filter">
+				<option value="">All conditions</option>
+				<option value="clear">Clear</option>
+				<option value="cloudy">Cloudy</option>
+				<option value="rain">Rain</option>
+				<option value="storm">Storm</option>
+				<option value="cold">Cold</option>
+				<option value="hot">Hot</option>
+				<option value="windy">Windy</option>
+			</select>
+
+			<button
+				type="button"
+				id="precipitationOnlyButton"
+				class="weather-toggle-button"
+				aria-pressed="false">
+				Precipitation Risk
+			</button>
+
+			<button type="button" id="applyWeatherFilters" class="weather-action-button">Apply Filters</button>
+			<button type="button" id="resetWeatherFilters" class="weather-reset-button">Reset Filters</button>
+		</div>
+	</section>
+
+	<div class="weather-grid">
+		<section class="weather-surface weather-current-panel">
+			<div class="weather-panel-heading">
+				<h2>Current Conditions</h2>
+				<span id="weatherUpdatedAt" class="weather-panel-chip">Loading...</span>
+			</div>
+			<div id="weatherCurrent" class="weather-panel-body"></div>
+		</section>
+
+		<section class="weather-surface weather-suggestions-panel">
+			<div class="weather-panel-heading">
+				<h2>Prep Suggestions</h2>
+				<span id="weatherSuggestionFocus" class="weather-panel-chip">Based on now</span>
+			</div>
+			<div id="weatherSuggestions" class="weather-panel-body"></div>
+		</section>
+	</div>
+
+	<section class="weather-surface weather-forecast-panel">
+		<div class="weather-panel-heading">
+			<h2>Forecast</h2>
+			<span id="weatherForecastSummary" class="weather-panel-chip">Loading...</span>
+		</div>
+		<div id="weatherForecast" class="weather-forecast-list"></div>
+	</section>
+</main>

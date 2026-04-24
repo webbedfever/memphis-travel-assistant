@@ -8,6 +8,7 @@ import autosize from "autosize"
 
 import "./maps/index";
 import "./planner/index";
+import "./weather/index";
 
 document.addEventListener("turbo:load", () => {
   const popoverTriggerList = document.querySelectorAll('[data-bs-toggle="popover"]')

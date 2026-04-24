@@ -2,6 +2,7 @@ import MapController from "maps/map_controller";
 import DirectionsController from "maps/directions_controller";
 import EventsController from "maps/events_controller";
 import PlacesController from "maps/places_controller";
+import { fillDirectionsDestination, fillDirectionsOrigin } from "maps/helpers";
 import { loadPlannerItems } from "maps/planner_state";
 
 let googleMapsPromise = null;
@@ -13,6 +14,8 @@ class MapsPage {
 		this.eventsController = null;
 		this.placesController = null;
 		this.initialized = false;
+		this.loadAllTimer = null;
+		this.lastViewportKey = "";
 	}
 
 	async initMap() {
@@ -26,11 +29,22 @@ class MapsPage {
 		this.eventsController = new EventsController(this.mapController);
 		this.placesController = new PlacesController(this.mapController);
 
-		this.mapController.onIdle(async () => {
-			await this.loadAll();
-		});
+		this.mapController.onViewportChange(() => this.scheduleLoadAll());
+		await this.loadAll();
+		this.lastViewportKey = this.mapController.viewportKey();
 
 		this.initialized = true;
+	}
+
+	scheduleLoadAll() {
+		window.clearTimeout(this.loadAllTimer);
+		this.loadAllTimer = window.setTimeout(() => {
+			const nextViewportKey = this.mapController.viewportKey();
+			if (nextViewportKey === this.lastViewportKey) return;
+
+			this.lastViewportKey = nextViewportKey;
+			this.loadAll().catch(error => console.error(error));
+		}, 700);
 	}
 
 	async loadAll() {
@@ -77,12 +91,24 @@ class MapsPage {
 		this.directionsController.getDirections();
 	}
 
+	swapDirections() {
+		if (!this.directionsController) return;
+		this.directionsController.swapLocations();
+	}
+
+	useCurrentLocation() {
+		if (!this.directionsController) return;
+		this.directionsController.useCurrentLocation();
+	}
+
 	reset() {
+		window.clearTimeout(this.loadAllTimer);
 		this.mapController = new MapController();
 		this.directionsController = null;
 		this.eventsController = null;
 		this.placesController = null;
 		this.initialized = false;
+		this.lastViewportKey = "";
 	}
 }
 
@@ -92,6 +118,10 @@ window.applyFilters = () => app.applyFilters();
 window.resetFilters = () => app.resetFilters();
 window.getDirections = () => app.getDirections();
 window.toggleOpenNowFilter = () => app.toggleOpenNowFilter();
+window.swapDirections = () => app.swapDirections();
+window.useCurrentLocation = () => app.useCurrentLocation();
+window.useMarkerDestination = address => fillDirectionsDestination(address);
+window.useMarkerOrigin = address => fillDirectionsOrigin(address);
 
 function loadGoogleMapsApi() {
 	if (window.google?.maps?.places && window.google.maps.geometry) {

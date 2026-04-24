@@ -6,6 +6,7 @@ import {
 	formatEventTime,
 	groupByVenue,
 	normalizeRange,
+	renderStateCard,
 	sanitizeUrl,
 	timeToMinutes
 } from "maps/helpers";
@@ -24,7 +25,10 @@ export default class EventsController {
 
 		const container = document.getElementById("eventList");
 		this.updateCountLabel("Loading...");
-		container.innerHTML = "<p>Loading events...</p>";
+		container.innerHTML = renderStateCard(
+			"Loading events",
+			"Checking what is happening around Memphis right now."
+		);
 
 		const start = document.getElementById("startDate").value;
 		const end = document.getElementById("endDate").value;
@@ -56,7 +60,10 @@ export default class EventsController {
 			this.bindPlannerButtons();
 		} catch (error) {
 			this.updateCountLabel("Unavailable");
-			container.innerHTML = "<p>Unable to load events.</p>";
+			container.innerHTML = renderStateCard(
+				"Unable to load events",
+				"We could not reach the events feed just now. Try again in a moment."
+			);
 			console.error(error);
 		}
 	}
@@ -66,7 +73,10 @@ export default class EventsController {
 
 		if (groups.length === 0) {
 			this.updateCountLabel(this.countLabel(0, "event"));
-			container.innerHTML = "<p>No events found</p>";
+			container.innerHTML = renderStateCard(
+				"No events found",
+				"Try widening the date range, adjusting the time window, or moving the map."
+			);
 			return;
 		}
 
@@ -142,19 +152,27 @@ export default class EventsController {
 				const items = group.events
 					.sort((a, b) => new Date(a.date) - new Date(b.date))
 					.map(event => `
-						<li>
-							<strong>${event.name}</strong><br>
-							${new Date(event.date).toLocaleDateString()} at ${formatEventTime(event.time)}
+						<li class="maps-marker-list-item">
+							<strong>${escapeHtml(event.name)}</strong>
+							<span>${new Date(event.date).toLocaleDateString()} at ${formatEventTime(event.time)}</span>
 							${this.renderTicketmasterInfoWindowLink(event)}
 						</li>
 					`)
 					.join("");
 
+				const encodedAddress = encodeURIComponent(group.address || group.venue || "");
+
 				this.infoWindow.setContent(`
-					<div style="max-width:250px">
-						<h3>${group.venue}</h3>
-						${group.address ? `${escapeHtml(group.address)}<br>` : ""}
-						<ul>${items}</ul>
+					<div class="maps-marker-window">
+						<div class="maps-marker-heading">
+							<strong>${escapeHtml(group.venue)}</strong>
+							<span>${this.countLabel(group.events.length, "event")}</span>
+						</div>
+						${group.address ? `<p class="maps-marker-address">${escapeHtml(group.address)}</p>` : ""}
+						<div class="maps-marker-actions">
+							<button type="button" class="maps-marker-action" onclick="window.useMarkerDestination(decodeURIComponent('${encodedAddress}'))">Route Here</button>
+						</div>
+						<ul class="maps-marker-list">${items}</ul>
 					</div>
 				`);
 
@@ -193,7 +211,7 @@ export default class EventsController {
 		const ticketmasterUrl = sanitizeUrl(event.ticketmaster_url);
 		if (!ticketmasterUrl) return "";
 
-		return `<br><a href="${ticketmasterUrl}" target="_blank" rel="noopener">Ticketmaster</a>`;
+		return `<a href="${ticketmasterUrl}" target="_blank" rel="noopener">Ticketmaster</a>`;
 	}
 
 	renderAddressButton(address) {

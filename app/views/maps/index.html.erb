@@ -21,6 +21,7 @@
 					<p class="maps-section-kicker">Route Builder</p>
 					<h2>Get directions across Memphis</h2>
 				</div>
+				<span class="maps-section-note">Nearby results update when the map moves</span>
 			</div>
 
 			<div class="maps-toolbar" aria-label="Directions">
@@ -32,7 +33,13 @@
 					<option value="BICYCLING">Bicycling</option>
 					<option value="TRANSIT">Transit</option>
 				</select>
+				<button type="button" class="maps-secondary-button" onclick="swapDirections()">Swap</button>
+				<button type="button" class="maps-secondary-button" onclick="useCurrentLocation()">Use My Location</button>
 				<button class="maps-action-button" onclick="getDirections()">Get Directions</button>
+			</div>
+
+			<div id="routeSummary" class="maps-route-summary" aria-live="polite">
+				<p class="maps-route-placeholder">Choose a start point and destination to see route details here.</p>
 			</div>
 		</section>
 
@@ -96,7 +103,12 @@
 				<h2>Events</h2>
 				<span id="eventCount" class="maps-panel-count">0 available</span>
 			</div>
-			<div id="eventList" class="maps-panel-list"></div>
+			<div id="eventList" class="maps-panel-list">
+				<div class="maps-state-card">
+					<strong>Loading events</strong>
+					<p>Checking what is happening around Memphis right now.</p>
+				</div>
+			</div>
 		</section>
 
 		<section class="maps-panel">
@@ -104,7 +116,12 @@
 				<h2>Places</h2>
 				<span id="placeCount" class="maps-panel-count">0 available</span>
 			</div>
-			<div id="placeList" class="maps-panel-list"></div>
+			<div id="placeList" class="maps-panel-list">
+				<div class="maps-state-card">
+					<strong>Loading places</strong>
+					<p>Finding restaurants, attractions, and local spots near the map center.</p>
+				</div>
+			</div>
 		</section>
 	</div>
 </div>

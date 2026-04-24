@@ -40,6 +40,22 @@ export function fillDirectionsDestination(address) {
 	window.setTimeout(() => destination.focus(), 250);
 }
 
+export function fillDirectionsOrigin(address) {
+	const origin = document.getElementById("origin");
+	if (!origin || !address) return;
+
+	origin.value = address;
+	origin.dispatchEvent(new Event("input", { bubbles: true }));
+	origin.dispatchEvent(new Event("change", { bubbles: true }));
+
+	origin.closest(".maps-toolbar")?.scrollIntoView({
+		behavior: "smooth",
+		block: "center"
+	});
+
+	window.setTimeout(() => origin.focus(), 250);
+}
+
 export function bindDirectionAddressButtons(root = document) {
 	root.querySelectorAll(".maps-address-button").forEach(button => {
 		if (button.dataset.addressBound === "true") return;
@@ -49,6 +65,15 @@ export function bindDirectionAddressButtons(root = document) {
 			fillDirectionsDestination(button.dataset.address);
 		});
 	});
+}
+
+export function renderStateCard(title, message) {
+	return `
+		<div class="maps-state-card">
+			<strong>${escapeHtml(title)}</strong>
+			<p>${escapeHtml(message)}</p>
+		</div>
+	`;
 }
 
 export function groupByVenue(events) {

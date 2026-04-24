@@ -3,6 +3,7 @@ import {
 	clearMarkers,
 	escapeHtml,
 	normalizeRange,
+	renderStateCard,
 	sanitizeUrl,
 	timeToMinutes
 } from "maps/helpers";
@@ -21,7 +22,10 @@ export default class PlacesController {
 
 		const container = document.getElementById("placeList");
 		this.updateCountLabel("Loading...");
-		container.innerHTML = "<p>Loading places...</p>";
+		container.innerHTML = renderStateCard(
+			"Loading places",
+			"Finding restaurants, attractions, and local spots near the map center."
+		);
 
 		const bounds = this.mapController.getBounds();
 		const center = this.mapController.getCenter();
@@ -60,7 +64,10 @@ export default class PlacesController {
 			this.bindPlannerButtons();
 		} catch (error) {
 			this.updateCountLabel("Unavailable");
-			container.innerHTML = "<p>Unable to load places.</p>";
+			container.innerHTML = renderStateCard(
+				"Unable to load places",
+				"We could not reach nearby places right now. Try again in a moment."
+			);
 			console.error(error);
 		}
 	}
@@ -70,7 +77,10 @@ export default class PlacesController {
 
 		if (places.length === 0) {
 			this.updateCountLabel(this.countLabel(0, "place"));
-			container.innerHTML = "<p>No places found</p>";
+			container.innerHTML = renderStateCard(
+				"No places found",
+				"Try changing the place type, time filters, or moving the map to a different area."
+			);
 			return;
 		}
 
@@ -149,13 +159,36 @@ export default class PlacesController {
 			});
 
 			marker.addListener("click", () => {
+				const address = place.address || "";
+				const encodedAddress = encodeURIComponent(address);
+				const category = escapeHtml(this.formatCategory(place.category));
+				const rating = escapeHtml(place.rating || "N/A");
+				const status = escapeHtml(this.formatOpenStatus(place));
+				const hours = escapeHtml(this.formatHours(place));
+				const links = this.renderMarkerLinks(
+					sanitizeUrl(place.website),
+					sanitizeUrl(place.google_url)
+				);
+
 				this.infoWindow.setContent(`
-					<div style="max-width:200px">
-						<strong>${escapeHtml(place.name || "Unnamed place")}</strong><br>
-						${escapeHtml(place.address || "")}<br>
-						Rating: ${escapeHtml(place.rating || "N/A")}<br>
-						${escapeHtml(this.formatOpenStatus(place))}<br>
-						${escapeHtml(this.formatHours(place))}
+					<div class="maps-marker-window">
+						<div class="maps-marker-heading">
+							<strong>${escapeHtml(place.name || "Unnamed place")}</strong>
+							<span>${status}</span>
+						</div>
+						${address ? `<p class="maps-marker-address">${escapeHtml(address)}</p>` : ""}
+						<div class="maps-marker-meta">
+							<span>${category}</span>
+							<span>Rating: ${rating}</span>
+							<span>${hours}</span>
+						</div>
+						${address ? `
+							<div class="maps-marker-actions">
+								<button type="button" class="maps-marker-action" onclick="window.useMarkerDestination(decodeURIComponent('${encodedAddress}'))">Route Here</button>
+								<button type="button" class="maps-marker-action" onclick="window.useMarkerOrigin(decodeURIComponent('${encodedAddress}'))">Start Here</button>
+							</div>
+						` : ""}
+						${links ? `<div class="maps-marker-links">${links}</div>` : ""}
 					</div>
 				`);
 
@@ -246,6 +279,15 @@ export default class PlacesController {
 		return "Hours unavailable";
 	}
 
+	formatCategory(category) {
+		if (!category) return "Place";
+
+		return String(category)
+			.split("_")
+			.map(word => word.charAt(0).toUpperCase() + word.slice(1))
+			.join(" ");
+	}
+
 	renderPlaceLinks(website, googleUrl) {
 		const links = [];
 		if (website) links.push(`<a href="${website}" target="_blank" rel="noopener">Website</a>`);
@@ -254,6 +296,13 @@ export default class PlacesController {
 		if (links.length === 0) return "";
 
 		return `<div class="maps-result-links">${links.join("")}</div>`;
+	}
+
+	renderMarkerLinks(website, googleUrl) {
+		const links = [];
+		if (website) links.push(`<a href="${website}" target="_blank" rel="noopener">Website</a>`);
+		if (googleUrl) links.push(`<a href="${googleUrl}" target="_blank" rel="noopener">Google listing</a>`);
+		return links.join("");
 	}
 
 	renderAddressButton(address) {

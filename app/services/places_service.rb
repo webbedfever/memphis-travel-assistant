@@ -5,8 +5,8 @@ class PlacesService
 	DETAILS_URL = "https://maps.googleapis.com/maps/api/place/details/json"
 
 	TYPES = ["restaurant", "cafe", "bar", "tourist_attraction", "museum", "park", "store"]
-	RESULT_LIMIT = 50
-	DETAILS_BATCH_SIZE = 10
+	RESULT_LIMIT = 40
+	DETAILS_BATCH_SIZE = 8
 	REQUEST_TIMEOUT = 5
 
 	def self.nearby_open_places(lat = 35.1495, lng = -90.0490, radius = 5000, type = nil, date = nil, open_now_only = false)

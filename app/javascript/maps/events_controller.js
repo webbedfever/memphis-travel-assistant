@@ -2,6 +2,7 @@ import {
 	bindDirectionAddressButtons,
 	clearMarkers,
 	escapeHtml,
+	formatCalendarDate,
 	formatDate,
 	formatEventTime,
 	groupByVenue,
@@ -82,7 +83,7 @@ export default class EventsController {
 
 		container.innerHTML = groups.map(group => {
 			const items = group.events
-				.sort((a, b) => new Date(a.date) - new Date(b.date))
+				.sort((a, b) => String(a.date).localeCompare(String(b.date)))
 				.map(event => {
 					const ticketmasterUrl = sanitizeUrl(event.ticketmaster_url);
 					const venueAddress = group.address || event.venue_address;
@@ -106,7 +107,7 @@ export default class EventsController {
 							<div class="maps-result-copy">
 								<strong>${event.name}</strong>
 								<div class="maps-result-meta">
-									<span>${new Date(event.date).toLocaleDateString()}</span>
+									<span>${formatCalendarDate(event.date)}</span>
 									<span>${formatEventTime(event.time)}</span>
 								</div>
 								${ticketmasterUrl ? `<div class="maps-result-links"><a href="${ticketmasterUrl}" target="_blank" rel="noopener">Ticketmaster</a></div>` : ""}
@@ -150,11 +151,11 @@ export default class EventsController {
 
 			marker.addListener("click", () => {
 				const items = group.events
-					.sort((a, b) => new Date(a.date) - new Date(b.date))
+					.sort((a, b) => String(a.date).localeCompare(String(b.date)))
 					.map(event => `
 						<li class="maps-marker-list-item">
 							<strong>${escapeHtml(event.name)}</strong>
-							<span>${new Date(event.date).toLocaleDateString()} at ${formatEventTime(event.time)}</span>
+							<span>${formatCalendarDate(event.date)} at ${formatEventTime(event.time)}</span>
 							${this.renderTicketmasterInfoWindowLink(event)}
 						</li>
 					`)

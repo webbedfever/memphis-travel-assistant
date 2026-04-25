@@ -139,6 +139,32 @@
   padding: 0;
 }
 
+.maps-filter-shortcuts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.maps-filter-chip {
+  min-height: 38px;
+  padding: 8px 14px;
+  border-radius: 999px;
+  border: 1px solid #cfe1de;
+  background: #f5fbfa;
+  color: #0f766e;
+  font-size: 0.88rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.maps-filter-chip:hover,
+.maps-filter-chip:focus-visible {
+  border-color: #0f766e;
+  background: #e8f5f3;
+  color: #0b5c56;
+}
+
 .maps-toolbar input,
 .maps-toolbar select,
 .maps-filters input,
@@ -260,6 +286,14 @@
 
 .maps-route-placeholder {
   color: #6a798b;
+}
+
+.maps-filter-status {
+  min-height: 1.25rem;
+  margin: 12px 2px 0;
+  color: #5d6b7d;
+  font-size: 0.9rem;
+  line-height: 1.4;
 }
 
 .maps-marker-window {

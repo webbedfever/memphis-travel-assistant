@@ -103,16 +103,31 @@ export function groupByVenue(events) {
 export function formatDate(date, endOfDay = false) {
 	if (!date) return null;
 
-	const parsed = new Date(date);
-	if (isNaN(parsed)) return null;
+	return `${date}T${endOfDay ? "23:59:59" : "00:00:00"}`;
+}
 
-	parsed.setUTCHours(
-		endOfDay ? 23 : 0,
-		endOfDay ? 59 : 0,
-		endOfDay ? 59 : 0
-	);
+export function formatCalendarDate(date) {
+	if (!date) return "Date unavailable";
 
-	return `${parsed.toISOString().split(".")[0]}Z`;
+	const match = String(date).match(/^(\d{4})-(\d{2})-(\d{2})$/);
+	if (!match) return date;
+
+	const localDate = new Date(Number(match[1]), Number(match[2]) - 1, Number(match[3]));
+	return localDate.toLocaleDateString([], {
+		month: "short",
+		day: "numeric",
+		year: "numeric"
+	});
+}
+
+export function plannerDateTime(date, time = "", fallbackTime = "00:00:00") {
+	if (!date) return null;
+
+	const normalizedTime = time
+		? (time.length === 5 ? `${time}:00` : time)
+		: fallbackTime;
+
+	return `${date}T${normalizedTime}`;
 }
 
 export function formatEventTime(time) {

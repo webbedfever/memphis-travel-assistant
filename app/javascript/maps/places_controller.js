@@ -3,6 +3,7 @@ import {
 	clearMarkers,
 	escapeHtml,
 	normalizeRange,
+	plannerDateTime,
 	renderStateCard,
 	sanitizeUrl,
 	timeToMinutes
@@ -59,7 +60,7 @@ export default class PlacesController {
 			});
 
 			this.updateCountLabel(this.countLabel(places.length, "place"));
-			this.renderList(places, type);
+			this.renderList(places, type, { date, startTime, endTime });
 			this.renderMarkers(places);
 			this.bindPlannerButtons();
 		} catch (error) {
@@ -72,7 +73,7 @@ export default class PlacesController {
 		}
 	}
 
-	renderList(places, type) {
+	renderList(places, type, filters = {}) {
 		const container = document.getElementById("placeList");
 
 		if (places.length === 0) {
@@ -94,6 +95,16 @@ export default class PlacesController {
 			const phone = escapeHtml(place.phone || "");
 			const website = sanitizeUrl(place.website);
 			const googleUrl = sanitizeUrl(place.google_url);
+			const selectedDate = filters.date || "";
+			const startTime = filters.startTime || "";
+			const endTime = filters.endTime || "";
+			const scheduledStart = selectedDate ? plannerDateTime(selectedDate, startTime) : null;
+			const scheduledEnd = selectedDate && startTime && endTime
+				? plannerDateTime(selectedDate, endTime)
+				: null;
+			const datedExternalId = selectedDate
+				? `${place.place_id || `google-place-${place.name}-${place.lat}-${place.lng}`}-${selectedDate}`
+				: place.place_id || `google-place-${place.name}-${place.lat}-${place.lng}`;
 
 			const payload = encodeURIComponent(JSON.stringify({
 				title: place.name,
@@ -102,7 +113,9 @@ export default class PlacesController {
 				address: place.address,
 				latitude: place.lat,
 				longitude: place.lng,
-				external_id: place.place_id || `google-place-${place.name}-${place.lat}-${place.lng}`,
+				start_time: scheduledStart,
+				end_time: scheduledEnd,
+				external_id: datedExternalId,
 				source: "google_places",
 				category: type || place.category,
 				rating: place.rating,

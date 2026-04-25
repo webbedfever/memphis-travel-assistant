@@ -1,4 +1,5 @@
 <div class="maps-page container">
+	<% today = Time.zone.today.iso8601 %>
 	<div class="maps-header">
 		<div class="maps-header-copy">
 			<p class="maps-kicker">Maps</p>
@@ -57,9 +58,16 @@
 			</div>
 		</div>
 
+		<div class="maps-filter-shortcuts" role="group" aria-label="Quick date ranges">
+			<button type="button" class="maps-filter-chip" data-date-preset="today">Today</button>
+			<button type="button" class="maps-filter-chip" data-date-preset="nextWeek">Following Week</button>
+			<button type="button" class="maps-filter-chip" data-date-preset="weekend">Weekend</button>
+			<button type="button" class="maps-filter-chip" data-date-preset="nextMonth">Following Month</button>
+		</div>
+
 		<div class="maps-filters">
-			<input type="date" id="startDate" aria-label="Start date">
-			<input type="date" id="endDate" aria-label="End date">
+			<input type="date" id="startDate" value="<%= today %>" min="<%= today %>" aria-label="Start date">
+			<input type="date" id="endDate" value="<%= today %>" min="<%= today %>" aria-label="End date">
 			<input type="time" id="startTime" aria-label="Start time">
 			<input type="time" id="endTime" aria-label="End time">
 
@@ -95,6 +103,8 @@
 			<button class="maps-action-button" onclick="applyFilters()">Apply Filters</button>
 			<button type="button" class="maps-reset-button" onclick="resetFilters()">Reset Filters</button>
 		</div>
+
+		<p id="filterStatus" class="maps-filter-status" aria-live="polite"></p>
 	</section>
 
 	<div id="results" class="maps-results">

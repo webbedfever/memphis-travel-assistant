@@ -7,6 +7,53 @@ import { loadPlannerItems } from "maps/planner_state";
 
 let googleMapsPromise = null;
 
+function todayDateValue() {
+	return new Date().toLocaleDateString("en-CA");
+}
+
+function addDays(date, days) {
+	const nextDate = new Date(date);
+	nextDate.setDate(nextDate.getDate() + days);
+	return nextDate;
+}
+
+function toDateValue(date) {
+	return date.toLocaleDateString("en-CA");
+}
+
+function nextWeekendRange() {
+	const today = new Date();
+	const day = today.getDay();
+	const daysUntilSaturday = day === 6 ? 0 : day === 0 ? 6 : 6 - day;
+	const start = addDays(today, daysUntilSaturday);
+	const end = addDays(start, 1);
+	return { start: toDateValue(start), end: toDateValue(end), label: "Weekend" };
+}
+
+function nextWeekRange() {
+	const today = new Date();
+	const day = today.getDay();
+	const daysUntilNextMonday = day === 0 ? 1 : 8 - day;
+	const start = addDays(today, daysUntilNextMonday);
+	const end = addDays(start, 6);
+	return { start: toDateValue(start), end: toDateValue(end), label: "Following week" };
+}
+
+function nextMonthRange() {
+	const today = new Date();
+	const start = new Date(today.getFullYear(), today.getMonth() + 1, 1);
+	const end = new Date(today.getFullYear(), today.getMonth() + 2, 0);
+	return { start: toDateValue(start), end: toDateValue(end), label: "Following month" };
+}
+
+function ensureDefaultDateFilters() {
+	const today = todayDateValue();
+	["startDate", "endDate"].forEach(id => {
+		const input = document.getElementById(id);
+		if (input && !input.value) input.value = today;
+	});
+}
+
 class MapsPage {
 	constructor() {
 		this.mapController = new MapController();
@@ -18,11 +65,112 @@ class MapsPage {
 		this.lastViewportKey = "";
 	}
 
+	filterInputs() {
+		return {
+			startDate: document.getElementById("startDate"),
+			endDate: document.getElementById("endDate"),
+			startTime: document.getElementById("startTime"),
+			endTime: document.getElementById("endTime"),
+			status: document.getElementById("filterStatus")
+		};
+	}
+
+	setFilterStatus(message = "") {
+		const { status } = this.filterInputs();
+		if (status) status.textContent = message;
+	}
+
+	normalizeDateRange() {
+		const { startDate, endDate } = this.filterInputs();
+		if (!startDate || !endDate) return;
+
+		const today = todayDateValue();
+		startDate.min = today;
+		endDate.min = today;
+
+		if (startDate.value && startDate.value < today) {
+			startDate.value = today;
+			this.setFilterStatus("Past dates are not available, so the start date was moved to today.");
+		}
+
+		if (endDate.value && endDate.value < today) {
+			endDate.value = today;
+			this.setFilterStatus("Past dates are not available, so the end date was moved to today.");
+		}
+
+		if (!startDate.value) startDate.value = today;
+		if (!endDate.value) endDate.value = startDate.value;
+
+		if (endDate.value < startDate.value) {
+			endDate.value = startDate.value;
+			this.setFilterStatus("The end date was adjusted to match the start date.");
+		}
+
+		endDate.min = startDate.value || today;
+	}
+
+	bindFilterValidation() {
+		const { startDate, endDate } = this.filterInputs();
+		if (!startDate || !endDate) return;
+		if (startDate.dataset.validationBound === "true") return;
+
+		startDate.dataset.validationBound = "true";
+		endDate.dataset.validationBound = "true";
+
+		startDate.addEventListener("change", () => this.normalizeDateRange());
+		endDate.addEventListener("change", () => this.normalizeDateRange());
+	}
+
+	bindDatePresets() {
+		document.querySelectorAll("[data-date-preset]").forEach(button => {
+			if (button.dataset.presetBound === "true") return;
+			button.dataset.presetBound = "true";
+
+			button.addEventListener("click", async () => {
+				let range = null;
+
+				switch (button.dataset.datePreset) {
+				case "today":
+					range = {
+						start: todayDateValue(),
+						end: todayDateValue(),
+						label: "Today"
+					};
+					break;
+				case "nextWeek":
+					range = nextWeekRange();
+					break;
+				case "weekend":
+					range = nextWeekendRange();
+					break;
+				case "nextMonth":
+					range = nextMonthRange();
+					break;
+				default:
+					return;
+				}
+
+				const { startDate, endDate } = this.filterInputs();
+				if (!startDate || !endDate) return;
+
+				startDate.value = range.start;
+				endDate.value = range.end;
+				this.normalizeDateRange();
+				this.setFilterStatus(`${range.label} selected: ${range.start} to ${range.end}.`);
+				await this.loadAll();
+			});
+		});
+	}
+
 	async initMap() {
 		if (this.initialized) return;
 		if (!document.getElementById("map")) return;
 		if (!window.google || !window.google.maps) return;
 
+		ensureDefaultDateFilters();
+		this.normalizeDateRange();
+		this.bindFilterValidation();
+		this.bindDatePresets();
 		this.mapController.init();
 
 		this.directionsController = new DirectionsController(this.mapController);
@@ -61,6 +209,7 @@ class MapsPage {
 	}
 
 	async applyFilters() {
+		this.normalizeDateRange();
 		await this.loadAll();
 	}
 
@@ -69,6 +218,10 @@ class MapsPage {
 			const input = document.getElementById(id);
 			if (input) input.value = "";
 		});
+
+		ensureDefaultDateFilters();
+		this.normalizeDateRange();
+		this.setFilterStatus("Filters reset to today.");
 
 		const openNowButton = document.getElementById("openNowButton");
 		if (openNowButton) openNowButton.setAttribute("aria-pressed", "false");

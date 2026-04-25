@@ -1,0 +1,15 @@
+<h1>Memphis Weather</h1>
+
+<% if @weather %>
+  <p>
+    <strong>Temperature:</strong>
+    <%= @weather[:temperature] %>°<%= @weather[:unit] %>
+  </p>
+
+  <p>
+    <strong>Condition:</strong>
+    <%= @weather[:condition] %>
+  </p>
+<% else %>
+  <p>Weather data is currently unavailable.</p>
+<% end %>

@@ -5,19 +5,15 @@
 	<section class="dashboard-hero">
 		<div class="dashboard-hero-copy">
 			<p class="dashboard-kicker">Dashboard</p>
-			<h1><%= user_signed_in? ? "Your Memphis trip at a glance" : "Plan a Memphis day that actually feels connected" %></h1>
+			<h1><%= user_signed_in? ? "Your trip command center" : "Plan a Memphis day that actually feels connected" %></h1>
 			<p class="dashboard-lede">
-				<%= user_signed_in? ? "See what is coming up, what the weather is doing, and what still needs shaping before you head out." : "Browse the app like a local assistant: maps for exploring, weather for prep, and a planner that turns saved ideas into a real day." %>
+				<%= user_signed_in? ? "Use Maps for discovery, Planner for editing, and this dashboard for the final read on what is next." : "Browse the app like a local assistant: Maps for exploring, Weather for prep, and a Planner that turns saved ideas into a real day once you sign in." %>
 			</p>
 
 			<div class="dashboard-actions">
 				<%= link_to "Open Maps", maps_path, class: "dashboard-primary-action" %>
 				<%= link_to "Open Planner", planner_path, class: "dashboard-secondary-action" %>
 				<%= link_to "Check Weather", weather_path, class: "dashboard-secondary-action" %>
-				<% unless user_signed_in? %>
-					<%= link_to "Sign In", new_user_session_path, class: "dashboard-secondary-action" %>
-					<%= link_to "Create Account", new_user_registration_path, class: "dashboard-secondary-action" %>
-				<% end %>
 			</div>
 		</div>
 
@@ -33,13 +29,8 @@
 				</div>
 			<% else %>
 				<p class="dashboard-hero-label">Guest mode</p>
-				<strong>Explore Memphis first, save later.</strong>
-				<p>Try maps, preview weather, and sign in when you want to keep an itinerary.</p>
-				<div class="dashboard-hero-meta">
-					<span>Maps</span>
-					<span>Weather</span>
-					<span>Planner-ready</span>
-				</div>
+				<strong>Explore first. Sign in to keep the plan.</strong>
+				<p>Guest mode lets you browse maps and weather. Signing in unlocks saved stops, planner editing, reminders, and this dashboard summary.</p>
 			<% end %>
 		</div>
 	</section>
@@ -49,22 +40,27 @@
 			<div class="dashboard-stat-card">
 				<span>Saved stops</span>
 				<strong><%= @dashboard_stats[:saved] %></strong>
-				<p>Everything you have pulled into the trip builder.</p>
+				<p><%= @dashboard_stats[:saved].positive? ? "Everything you have pulled into the trip builder." : "No saved stops yet. Start with Maps." %></p>
+				<% if @dashboard_stats[:saved].zero? %>
+					<%= link_to "Open Maps", maps_path, class: "dashboard-card-link" %>
+				<% end %>
 			</div>
 			<div class="dashboard-stat-card">
-				<span>Today’s timed stops</span>
-				<strong><%= @today_items.size %></strong>
-				<p><%= @today_items.any? ? "Your day already has momentum." : "Today is still wide open." %></p>
+				<span>Next stop</span>
+				<strong><%= @next_item.present? ? @next_item.title : "None" %></strong>
+				<p><%= @next_item.present? ? dashboard_item_time(@next_item) : "Save a stop, then update its time in Planner." %></p>
+				<%= link_to "Open Planner", planner_path, class: "dashboard-card-link" %>
 			</div>
 			<div class="dashboard-stat-card">
-				<span>Scheduled reminders</span>
+				<span>Today’s weather</span>
+				<strong><%= weather_error ? "N/A" : dashboard_condition_label(@current_weather[:condition_text]) %></strong>
+				<p><%= weather_error ? "Weather is unavailable, but your planner still works." : weather_suggestions.first %></p>
+			</div>
+			<div class="dashboard-stat-card">
+				<span>Reminders</span>
 				<strong><%= @dashboard_stats[:reminders] %></strong>
-				<p><%= @dashboard_stats[:reminders].positive? ? "You have notifications queued." : "No reminders are set yet." %></p>
-			</div>
-			<div class="dashboard-stat-card">
-				<span>Flexible stops</span>
-				<strong><%= @planning_gaps[:flexible] %></strong>
-				<p><%= @planning_gaps[:flexible].positive? ? "These still need a place in the flow." : "Your saved stops are mostly slotted." %></p>
+				<p><%= @dashboard_stats[:reminders].positive? ? "You have notifications queued." : "No reminders set. Add one from Planner controls." %></p>
+				<%= link_to "Set reminders", planner_path, class: "dashboard-card-link" %>
 			</div>
 		</section>
 	<% end %>
@@ -82,7 +78,8 @@
 			<% if weather_error %>
 				<div class="dashboard-empty-state">
 					<strong>Weather is temporarily unavailable.</strong>
-					<p>Try again shortly to pull the latest Memphis forecast.</p>
+					<p>Your saved stops and planner still work. Try the weather page again shortly for the latest Memphis forecast.</p>
+					<%= link_to "Retry forecast", weather_path, class: "dashboard-empty-link" %>
 				</div>
 			<% else %>
 				<div class="dashboard-weather-current">
@@ -138,6 +135,7 @@
 					<div class="dashboard-empty-state">
 						<strong>Nothing is timed for today yet.</strong>
 						<p>Save a place or event from Maps to start shaping today’s flow.</p>
+						<%= link_to "Open Maps", maps_path, class: "dashboard-empty-link" %>
 					</div>
 				<% end %>
 			</section>
@@ -157,7 +155,7 @@
 					</div>
 					<div class="dashboard-check">
 						<strong><%= @planning_gaps[:reminderless] %> timed stops without reminders</strong>
-						<p><%= @planning_gaps[:reminderless].positive? ? "Add reminders for anything you do not want to miss." : "Your timed stops are already covered." %></p>
+						<p><%= @planning_gaps[:reminderless].positive? ? "Use the Planner notification controls on each card." : "Your timed stops are already covered." %></p>
 					</div>
 					<div class="dashboard-check">
 						<strong><%= @planning_gaps[:today_open] ? "Today is open" : "Today has a plan" %></strong>
@@ -197,6 +195,7 @@
 					<div class="dashboard-empty-state">
 						<strong>You do not have an upcoming queue yet.</strong>
 						<p>Maps is the fastest way to start adding events and places into the planner.</p>
+						<%= link_to "Find stops", maps_path, class: "dashboard-empty-link" %>
 					</div>
 				<% end %>
 			</section>
@@ -223,8 +222,8 @@
 						<p>See Memphis conditions and get quick suggestions for what to bring.</p>
 					</div>
 					<div class="dashboard-check">
-						<strong>Save a real itinerary</strong>
-						<p>Sign in when you want to keep stops, reminders, and day plans together.</p>
+						<strong>Unlock saved trips</strong>
+						<p>Signing in keeps saved stops, planner edits, completed items, and reminders attached to your account.</p>
 					</div>
 				</div>
 			</section>

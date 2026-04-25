@@ -493,6 +493,25 @@
   line-height: 1.5;
 }
 
+.maps-state-action {
+  width: fit-content;
+  min-height: 36px;
+  border: 1px solid #b9d8d4;
+  border-radius: 999px;
+  background: #eef7f6;
+  color: #0f766e;
+  padding: 8px 12px;
+  font-weight: 750;
+  line-height: 1;
+}
+
+.maps-state-action:hover,
+.maps-state-action:focus-visible {
+  background: #0f766e;
+  border-color: #0f766e;
+  color: #ffffff;
+}
+
 .maps-group-card {
   margin-bottom: 12px;
   padding: 14px 15px;
@@ -598,6 +617,37 @@
 .maps-result-links a:focus-visible {
   background: #0f766e;
   color: #ffffff;
+}
+
+.maps-save-controls {
+  display: grid;
+  justify-items: end;
+  gap: 8px;
+  flex: 0 0 auto;
+}
+
+.maps-date-choice {
+  display: grid;
+  gap: 4px;
+  min-width: 132px;
+}
+
+.maps-date-choice span {
+  color: #65758a;
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.maps-date-choice select {
+  min-height: 34px;
+  border: 1px solid #dbe3ea;
+  border-radius: 8px;
+  background: #fbfdff;
+  color: #233044;
+  padding: 6px 8px;
+  font-size: 0.82rem;
+  font-weight: 700;
 }
 
 .planner-inline-action {

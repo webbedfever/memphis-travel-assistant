@@ -25,11 +25,26 @@ function formatTimestamp(timestamp) {
 	});
 }
 
-function renderStateCard(title, message) {
+function escapeHtml(value) {
+	return String(value).replace(/[&<>"']/g, character => ({
+		"&": "&amp;",
+		"<": "&lt;",
+		">": "&gt;",
+		"\"": "&quot;",
+		"'": "&#39;"
+	})[character]);
+}
+
+function renderStateCard(title, message, action = null) {
+	const actionMarkup = action
+		? `<button type="button" class="weather-state-action" data-weather-retry>${escapeHtml(action.label || "Retry")}</button>`
+		: "";
+
 	return `
 		<div class="weather-state-card">
-			<strong>${title}</strong>
-			<p>${message}</p>
+			<strong>${escapeHtml(title)}</strong>
+			<p>${escapeHtml(message)}</p>
+			${actionMarkup}
 		</div>
 	`;
 }
@@ -172,6 +187,11 @@ class WeatherPage {
 	init() {
 		document.getElementById("applyWeatherFilters")?.addEventListener("click", () => this.render());
 		document.getElementById("resetWeatherFilters")?.addEventListener("click", () => this.resetFilters());
+		this.root.addEventListener("click", event => {
+			if (event.target.closest("[data-weather-retry]")) {
+				this.load();
+			}
+		});
 		this.precipitationOnlyButton?.addEventListener("click", () => {
 			const pressed = this.precipitationOnlyButton.getAttribute("aria-pressed") === "true";
 			this.precipitationOnlyButton.setAttribute("aria-pressed", String(!pressed));
@@ -191,7 +211,7 @@ class WeatherPage {
 					Accept: "application/json"
 				}
 			});
-			const payload = await response.json();
+			const payload = await response.json().catch(() => ({}));
 			if (!response.ok || payload.error) {
 				throw new Error(payload.message || payload.error || "Unable to load weather");
 			}
@@ -199,7 +219,11 @@ class WeatherPage {
 			this.data = payload;
 			this.render();
 		} catch (error) {
-			const markup = renderStateCard("Weather unavailable", error.message || "Unable to load weather.");
+			const markup = renderStateCard(
+				"Weather unavailable",
+				error.message || "Unable to load weather. You can still build the trip and check conditions again shortly.",
+				{ label: "Retry weather" }
+			);
 			this.current.innerHTML = markup;
 			this.suggestions.innerHTML = markup;
 			this.forecast.innerHTML = markup;

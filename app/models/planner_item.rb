@@ -5,6 +5,7 @@
 #  id                      :bigint           not null, primary key
 #  address                 :string
 #  category                :string
+#  completed_at            :datetime
 #  description             :text
 #  end_time                :datetime
 #  google_url              :string

@@ -20,10 +20,10 @@ class DashboardController < ApplicationController
 
   def load_planner_snapshot
     @planner_items = current_user.planner_items.ordered.to_a
-    @timed_items = @planner_items.select { |item| item.start_time.present? && !flexible_planner_item?(item) }
+    @timed_items = @planner_items.select { |item| item.completed_at.blank? && item.start_time.present? && !flexible_planner_item?(item) }
     @today_items = @timed_items.select { |item| item.start_time.to_date == Time.zone.today }
     @upcoming_items = @timed_items.select { |item| item.start_time >= Time.current }.first(4)
-    @flexible_items = @planner_items.select { |item| item.start_time.blank? || flexible_planner_item?(item) }
+    @flexible_items = @planner_items.select { |item| item.completed_at.blank? && (item.start_time.blank? || flexible_planner_item?(item)) }
     @next_item = @upcoming_items.first || @timed_items.first
 
     @dashboard_stats = {
@@ -31,7 +31,7 @@ class DashboardController < ApplicationController
       timed: @timed_items.size,
       places: @planner_items.count { |item| item.item_type == "place" },
       events: @planner_items.count { |item| item.item_type == "event" },
-      reminders: @planner_items.count { |item| item.reminder_enabled? && item.reminder_at.present? && item.reminder_at >= Time.current }
+      reminders: @planner_items.count { |item| item.completed_at.blank? && item.reminder_enabled? && item.reminder_at.present? && item.reminder_at >= Time.current }
     }
 
     @planning_gaps = {

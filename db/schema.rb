@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2026_04_24_093000) do
+ActiveRecord::Schema[7.1].define(version: 2026_04_25_120000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -72,6 +72,7 @@ ActiveRecord::Schema[7.1].define(version: 2026_04_24_093000) do
     t.integer "reminder_minutes_before"
     t.datetime "reminder_sent_at"
     t.integer "position"
+    t.datetime "completed_at"
     t.index ["user_id", "external_id", "source"], name: "index_planner_items_on_user_id_and_external_id_and_source", unique: true
     t.index ["user_id"], name: "index_planner_items_on_user_id"
   end

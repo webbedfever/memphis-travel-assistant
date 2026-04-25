@@ -181,12 +181,36 @@
   color: #172033;
   font-size: 2rem;
   font-weight: 780;
+  overflow-wrap: anywhere;
 }
 
 .dashboard-stat-card p {
   margin: 10px 0 0;
   color: #5f6f82;
   line-height: 1.5;
+}
+
+.dashboard-card-link,
+.dashboard-empty-link {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  margin-top: 12px;
+  border-radius: 999px;
+  background: #eef7f6;
+  color: #0f766e;
+  padding: 7px 11px;
+  font-weight: 750;
+  line-height: 1;
+  text-decoration: none;
+}
+
+.dashboard-card-link:hover,
+.dashboard-card-link:focus-visible,
+.dashboard-empty-link:hover,
+.dashboard-empty-link:focus-visible {
+  background: #0f766e;
+  color: #ffffff;
 }
 
 .dashboard-grid {

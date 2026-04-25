@@ -66,6 +66,7 @@ class PlannerItemsController < ApplicationController
 			:ticketmaster_url,
 			:notes,
 			:position,
+			:completed_at,
 			:reminder_enabled,
 			:reminder_at,
 			:reminder_minutes_before
@@ -93,6 +94,7 @@ class PlannerItemsController < ApplicationController
 			:website,
 			:google_url,
 			:ticketmaster_url,
+			:completed_at,
 			:reminder_enabled,
 			:reminder_at,
 			:reminder_minutes_before,

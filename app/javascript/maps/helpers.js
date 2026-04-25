@@ -67,11 +67,16 @@ export function bindDirectionAddressButtons(root = document) {
 	});
 }
 
-export function renderStateCard(title, message) {
+export function renderStateCard(title, message, action = null) {
+	const actionMarkup = action
+		? `<button type="button" class="maps-state-action" data-retry-scope="${escapeHtml(action.scope)}">${escapeHtml(action.label || "Retry")}</button>`
+		: "";
+
 	return `
 		<div class="maps-state-card">
 			<strong>${escapeHtml(title)}</strong>
 			<p>${escapeHtml(message)}</p>
+			${actionMarkup}
 		</div>
 	`;
 }

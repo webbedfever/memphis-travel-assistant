@@ -61,6 +61,7 @@ class PlacesService
 				open_now: opening_hours["open_now"],
 				hours_for_day: weekday_hours,
 				hours_periods: opening_hours["periods"] || [],
+				weekday_text: opening_hours["weekday_text"] || [],
 				hours_day: target_date.strftime("%A"),
 				rating: place["rating"],
 				address: place["vicinity"],

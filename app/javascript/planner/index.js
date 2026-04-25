@@ -8,6 +8,8 @@ function bindDeleteButtons() {
 			const plannerItemId = clickedButton.dataset.plannerItemId;
 
 			if (!plannerItemId) return;
+			const title = clickedButton.closest(".planner-item")?.dataset.itemTitle || "this stop";
+			if (!window.confirm(`Remove ${title} from your planner?`)) return;
 
 			try {
 				const response = await fetch(`/planner_items/${plannerItemId}`, {
@@ -37,8 +39,9 @@ function bindDeleteButtons() {
 						if (page && !page.querySelector("[data-planner-empty]")) {
 							page.insertAdjacentHTML("beforeend", `
 								<div class="planner-empty" data-planner-empty>
-									<strong>Your itinerary is still open.</strong>
-									<p>Save places, events, and weather prep items to start building a Memphis day that actually feels planned.</p>
+									<strong>No saved stops yet.</strong>
+									<p>Maps is where discovery starts. Save a place or event there, then come back here to edit the day.</p>
+									<a href="/maps" class="planner-empty-action">Open Maps</a>
 								</div>
 							`);
 						}
@@ -62,8 +65,9 @@ function ensurePlannerEmptyState() {
 	if (page && !page.querySelector("[data-planner-empty]")) {
 		page.insertAdjacentHTML("beforeend", `
 			<div class="planner-empty" data-planner-empty>
-				<strong>Your itinerary is still open.</strong>
-				<p>Save places, events, and weather prep items to start building a Memphis day that actually feels planned.</p>
+				<strong>No saved stops yet.</strong>
+				<p>Maps is where discovery starts. Save a place or event there, then come back here to edit the day.</p>
+				<a href="/maps" class="planner-empty-action">Open Maps</a>
 			</div>
 		`);
 	}
@@ -144,6 +148,56 @@ function bindClearDayButtons() {
 	});
 }
 
+function bindCompleteButtons() {
+	document.querySelectorAll("[data-complete-planner-item]").forEach(button => {
+		if (button.dataset.completeBound === "true") return;
+		button.dataset.completeBound = "true";
+
+		button.addEventListener("click", async () => {
+			const plannerItemId = button.dataset.plannerItemId;
+			const item = button.closest(".planner-item");
+			if (!plannerItemId || !item) return;
+
+			button.disabled = true;
+			button.textContent = "Saving...";
+
+			try {
+				const completedAt = new Date().toISOString();
+				const response = await fetch(`/planner_items/${plannerItemId}`, {
+					method: "PATCH",
+					headers: {
+						"X-CSRF-Token": csrfToken(),
+						"Accept": "application/json",
+						"Content-Type": "application/json"
+					},
+					body: JSON.stringify({
+						planner_item: {
+							completed_at: completedAt
+						}
+					})
+				});
+
+				const data = await parseReminderResponse(response);
+				if (!response.ok) {
+					throw new Error(data.errors?.join(", ") || "Unable to mark stop as done");
+				}
+
+				item.classList.add("is-complete");
+				item.dataset.completedAt = data.completed_at || completedAt;
+				if (!item.querySelector(".planner-complete-pill")) {
+					item.querySelector(".planner-quick-meta")?.insertAdjacentHTML("beforeend", `<span class="planner-complete-pill">Done</span>`);
+				}
+				button.textContent = "Done";
+				refreshNextStop();
+			} catch (error) {
+				alert(error.message);
+				button.disabled = false;
+				button.textContent = "Mark done";
+			}
+		});
+	});
+}
+
 function refreshNextStop(items = Array.from(document.querySelectorAll(".planner-item"))) {
 	const nextStopTitle = document.querySelector(".planner-next-stop strong");
 	const nextStopCopy = document.querySelector(".planner-next-stop p");
@@ -151,6 +205,7 @@ function refreshNextStop(items = Array.from(document.querySelectorAll(".planner-
 
 	const nextItem = items
 		.filter(item => item.dataset.itemType !== "weather_prep" && item.dataset.hasStartTime === "true" && item.dataset.startTime)
+		.filter(item => !item.dataset.completedAt)
 		.sort((left, right) => new Date(left.dataset.startTime) - new Date(right.dataset.startTime))[0];
 
 	if (!nextItem) {
@@ -174,6 +229,184 @@ const reminderTimers = new Map();
 
 function csrfToken() {
 	return document.querySelector('meta[name="csrf-token"]')?.content;
+}
+
+function escapeHtml(value) {
+	return String(value).replace(/[&<>"']/g, character => ({
+		"&": "&amp;",
+		"<": "&lt;",
+		">": "&gt;",
+		"\"": "&quot;",
+		"'": "&#39;"
+	})[character]);
+}
+
+function timeToMinutes(value) {
+	const match = String(value || "").match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/i);
+	if (!match) return null;
+
+	let hours = Number(match[1]);
+	const minutes = Number(match[2]);
+	const period = match[3].toUpperCase();
+
+	if (hours < 1 || hours > 12 || minutes > 59) return null;
+	if (period === "AM" && hours === 12) hours = 0;
+	if (period === "PM" && hours !== 12) hours += 12;
+
+	return (hours * 60) + minutes;
+}
+
+function parsePlaceHourRanges(hoursText) {
+	if (!hoursText) return null;
+
+	const normalized = String(hoursText)
+		.replace(/\u202f|\u00a0/g, " ")
+		.replace(/\u2013|\u2014/g, "-");
+	const hoursOnly = normalized.includes(":") ? normalized.slice(normalized.indexOf(":") + 1).trim() : normalized.trim();
+
+	if (!hoursOnly) return null;
+	if (/closed/i.test(hoursOnly)) return [];
+	if (/open 24 hours/i.test(hoursOnly)) return [{ start: 0, end: 24 * 60 }];
+
+	return hoursOnly.split(",").map(range => {
+		const parts = range.split("-").map(part => part.trim());
+		if (parts.length !== 2) return null;
+
+		const start = timeToMinutes(parts[0]);
+		const end = timeToMinutes(parts[1]);
+		if (start === null || end === null) return null;
+
+		return end > start
+			? { start, end }
+			: { start, end: end + (24 * 60) };
+	}).filter(Boolean);
+}
+
+function startMinuteFromLocalDateTime(value) {
+	if (!value) return null;
+	if (/^\d{2}:\d{2}$/.test(value)) {
+		const [hours, minutes] = value.split(":").map(Number);
+		return (hours * 60) + minutes;
+	}
+
+	const date = new Date(value);
+	if (Number.isNaN(date.getTime())) return null;
+
+	return (date.getHours() * 60) + date.getMinutes();
+}
+
+function updatePlaceHoursWarning(form) {
+	if (form.dataset.itemType !== "place") return;
+
+	const warning = form.querySelector("[data-hours-warning]");
+	const startInput = form.querySelector(".planner-edit-start");
+	if (!warning || !startInput) return;
+
+	const hoursText = form.dataset.hoursForDay || "";
+	const hoursDay = form.dataset.hoursDay || "the saved day";
+	const ranges = parsePlaceHourRanges(hoursText);
+	const startMinute = startMinuteFromLocalDateTime(startInput.value);
+
+	warning.dataset.state = "";
+	warning.textContent = "";
+
+	if (!startInput.value) return;
+
+	if (!hoursText || ranges === null) {
+		warning.dataset.state = "neutral";
+		warning.textContent = `Hours are unavailable for ${hoursDay}, so double-check before going.`;
+		return;
+	}
+
+	if (ranges.length === 0) {
+		warning.dataset.state = "warning";
+		warning.textContent = `This place is listed as closed for ${hoursDay}.`;
+		return;
+	}
+
+	if (startMinute === null) return;
+
+	const inRange = ranges.some(range => (
+		startMinute >= range.start && startMinute < range.end
+	));
+
+	if (!inRange) {
+		warning.dataset.state = "warning";
+		warning.textContent = `Heads up: this place may be closed at that time. Saved hours: ${hoursText}.`;
+	}
+}
+
+function dateTimeFromClock(input, fallbackTime = "00:00") {
+	const date = input?.dataset.date;
+	if (!date) return "";
+
+	const time = input.value || fallbackTime;
+	return `${date}T${time.length === 5 ? `${time}:00` : time}`;
+}
+
+function buildEditFormData(form) {
+	const formData = new FormData(form);
+	const startClock = form.querySelector(".planner-edit-start");
+	const endClock = form.querySelector(".planner-edit-end");
+
+	formData.delete("planner_item_start_clock");
+	formData.delete("planner_item_end_clock");
+
+	if (startClock) {
+		formData.set("planner_item[start_time]", dateTimeFromClock(startClock));
+	}
+
+	if (endClock) {
+		formData.set("planner_item[end_time]", endClock.value ? dateTimeFromClock(endClock) : "");
+	}
+
+	return formData;
+}
+
+function formatClock(date) {
+	if (!date || Number.isNaN(date.getTime())) return "";
+
+	return date.toLocaleTimeString([], {
+		hour: "numeric",
+		minute: "2-digit"
+	});
+}
+
+function formatRailTime(date) {
+	if (!date || Number.isNaN(date.getTime())) return "Flex";
+
+	const hour = date.toLocaleTimeString([], { hour: "numeric", hour12: true }).replace(/\s?(AM|PM)$/i, "");
+	const period = date.toLocaleTimeString([], { hour: "numeric", hour12: true }).match(/AM|PM/i)?.[0] || "";
+	return `${hour}<small>${period}</small>`;
+}
+
+function updatePlannerCardTime(item, data, form) {
+	const startClock = form.querySelector(".planner-edit-start");
+	const endClock = form.querySelector(".planner-edit-end");
+	if (!startClock && !endClock) return;
+
+	const startTime = startClock?.value ? data.start_time : "";
+	const endTime = endClock?.value ? data.end_time : "";
+	const startDate = startTime ? new Date(startTime) : null;
+	const endDate = endTime ? new Date(endTime) : null;
+	const railTime = item.querySelector("[data-planner-time]");
+	const timeMeta = item.querySelector("[data-time-meta]");
+
+	item.dataset.startTime = startTime || "";
+	item.dataset.hasStartTime = startTime ? "true" : "false";
+
+	if (railTime) {
+		railTime.innerHTML = startTime ? formatRailTime(startDate) : "Flex";
+	}
+
+	if (timeMeta) {
+		if (startTime) {
+			const range = endTime ? `${formatClock(startDate)} - ${formatClock(endDate)}` : formatClock(startDate);
+			timeMeta.textContent = range;
+		} else {
+			timeMeta.textContent = "Flex stop";
+		}
+	}
 }
 
 function setReminderStatus(form, message, state = "") {
@@ -255,6 +488,92 @@ function syncReminderControls(form) {
 	}
 
 	applyReminderInputBounds(form);
+}
+
+function bindEditForms() {
+	document.querySelectorAll(".planner-edit-form").forEach(form => {
+		if (form.dataset.editBound === "true") return;
+		form.dataset.editBound = "true";
+		updatePlaceHoursWarning(form);
+
+		form.addEventListener("change", event => {
+			if (event.target.matches(".planner-edit-start")) {
+				updatePlaceHoursWarning(form);
+			}
+		});
+
+		form.addEventListener("input", event => {
+			if (event.target.matches(".planner-edit-start")) {
+				updatePlaceHoursWarning(form);
+			}
+		});
+
+		form.addEventListener("submit", async event => {
+			event.preventDefault();
+			const plannerItemId = form.dataset.plannerItemId;
+			if (!plannerItemId) return;
+
+			const status = form.querySelector(".planner-edit-status");
+			const button = form.querySelector(".planner-edit-save");
+			const item = form.closest(".planner-item");
+
+			if (button) {
+				button.disabled = true;
+				button.textContent = "Saving...";
+			}
+			if (status) {
+				status.textContent = "Saving changes...";
+				status.dataset.state = "";
+			}
+
+			try {
+				const response = await fetch(`/planner_items/${plannerItemId}`, {
+					method: "PATCH",
+					headers: {
+						"X-CSRF-Token": csrfToken(),
+						"Accept": "application/json"
+					},
+					body: buildEditFormData(form)
+				});
+
+				const data = await parseReminderResponse(response);
+				if (!response.ok) {
+					throw new Error(data.errors?.join(", ") || "Unable to save changes");
+				}
+
+				if (item) {
+					updatePlannerCardTime(item, data, form);
+
+					const note = item.querySelector(".planner-item-note");
+					const notesValue = form.querySelector(".planner-edit-notes")?.value.trim();
+					if (note && notesValue) {
+						note.textContent = notesValue;
+					} else if (note && !notesValue) {
+						note.remove();
+					} else if (notesValue) {
+						item.querySelector(".planner-item-copy")?.insertAdjacentHTML("beforeend", `<p class="planner-item-note">${escapeHtml(notesValue)}</p>`);
+					}
+				}
+
+				refreshPlannerOverview();
+				if (status) {
+					status.textContent = "Changes saved.";
+					status.dataset.state = "success";
+				}
+			} catch (error) {
+				if (status) {
+					status.textContent = error.message;
+					status.dataset.state = "error";
+				}
+				console.error(error);
+			} finally {
+				if (button) {
+					button.disabled = false;
+					button.textContent = "Save changes";
+				}
+			}
+		});
+	});
 }
 
 function notifyPlannerItem(item) {
@@ -499,6 +818,8 @@ function bindFlexDragAndDrop() {
 function bindPlannerPage() {
 	bindDeleteButtons();
 	bindClearDayButtons();
+	bindCompleteButtons();
+	bindEditForms();
 	bindReminderForms();
 	bindFlexDragAndDrop();
 	refreshPlannerOverview();

@@ -63,7 +63,8 @@ export default class EventsController {
 			this.updateCountLabel("Unavailable");
 			container.innerHTML = renderStateCard(
 				"Unable to load events",
-				"We could not reach the events feed just now. Try again in a moment."
+				"We could not reach the events feed just now. Try again in a moment.",
+				{ scope: "events", label: "Retry events" }
 			);
 			console.error(error);
 		}

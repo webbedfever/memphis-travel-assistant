@@ -2,7 +2,7 @@ import MapController from "maps/map_controller";
 import DirectionsController from "maps/directions_controller";
 import EventsController from "maps/events_controller";
 import PlacesController from "maps/places_controller";
-import { fillDirectionsDestination, fillDirectionsOrigin } from "maps/helpers";
+import { fillDirectionsDestination, fillDirectionsOrigin, renderStateCard } from "maps/helpers";
 import { loadPlannerItems } from "maps/planner_state";
 
 let googleMapsPromise = null;
@@ -162,6 +162,25 @@ class MapsPage {
 		});
 	}
 
+	bindRetryButtons() {
+		document.querySelectorAll("[data-retry-scope]").forEach(button => {
+			if (button.dataset.retryBound === "true") return;
+			button.dataset.retryBound = "true";
+
+			button.addEventListener("click", async () => {
+				const scope = button.dataset.retryScope;
+
+				if (scope === "events" && this.eventsController) {
+					await this.eventsController.load();
+				} else if (scope === "places" && this.placesController) {
+					await this.placesController.load();
+				} else {
+					await this.loadAll();
+				}
+			});
+		});
+	}
+
 	async initMap() {
 		if (this.initialized) return;
 		if (!document.getElementById("map")) return;
@@ -179,6 +198,7 @@ class MapsPage {
 
 		this.mapController.onViewportChange(() => this.scheduleLoadAll());
 		await this.loadAll();
+		this.bindRetryButtons();
 		this.lastViewportKey = this.mapController.viewportKey();
 
 		this.initialized = true;
@@ -206,6 +226,7 @@ class MapsPage {
 			this.eventsController.load(),
 			this.placesController.load()
 		]);
+		this.bindRetryButtons();
 	}
 
 	async applyFilters() {
@@ -332,8 +353,43 @@ async function waitForGoogleMaps() {
 		await loadGoogleMapsApi();
 		await app.initMap();
 	} catch (error) {
+		renderMapFailure(error);
 		console.error(error);
 	}
+}
+
+function renderMapFailure(error) {
+	const map = document.getElementById("map");
+	const eventList = document.getElementById("eventList");
+	const placeList = document.getElementById("placeList");
+
+	if (map) {
+		map.innerHTML = renderStateCard(
+			"Map unavailable",
+			error.message || "The map could not load. You can try again after checking the maps configuration.",
+			{ scope: "all", label: "Retry map" }
+		);
+	}
+
+	if (eventList) {
+		eventList.innerHTML = renderStateCard(
+			"Events paused",
+			"Events will load once the map is available.",
+			{ scope: "all", label: "Retry" }
+		);
+	}
+
+	if (placeList) {
+		placeList.innerHTML = renderStateCard(
+			"Places paused",
+			"Nearby places need the map before they can load.",
+			{ scope: "all", label: "Retry" }
+		);
+	}
+
+	document.querySelectorAll("[data-retry-scope]").forEach(button => {
+		button.addEventListener("click", () => window.location.reload(), { once: true });
+	});
 }
 
 document.addEventListener("turbo:load", waitForGoogleMaps);

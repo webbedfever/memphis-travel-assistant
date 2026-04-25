@@ -6,6 +6,10 @@
       <p class="home-lede">
         Find nearby places, check conditions, map your route, and keep the best stops in one planner.
       </p>
+      <div class="home-actions">
+        <%= link_to "Start with Maps", maps_path, class: "home-primary-action" %>
+        <%= link_to "View Dashboard", dashboard_path, class: "home-secondary-action" %>
+      </div>
     </div>
 
     <div class="home-trip-panel" aria-label="Planning overview">
@@ -17,17 +21,17 @@
       <div class="home-overview-list">
         <div class="home-overview-item">
           <span>1</span>
-          <strong>Discover Memphis options nearby.</strong>
+          <strong>Open Maps to discover stops.</strong>
         </div>
 
         <div class="home-overview-item">
           <span>2</span>
-          <strong>Check timing, weather, hours, and routes.</strong>
+          <strong>Save the places and events worth keeping.</strong>
         </div>
 
         <div class="home-overview-item">
           <span>3</span>
-          <strong>Keep the places you like in one plan.</strong>
+          <strong>Edit the plan, then use Dashboard as command center.</strong>
         </div>
       </div>
     </div>

@@ -296,6 +296,25 @@
   line-height: 1.5;
 }
 
+.weather-state-action {
+  width: fit-content;
+  min-height: 36px;
+  border: 1px solid #b9d8d4;
+  border-radius: 999px;
+  background: #eef7f6;
+  color: #0f766e;
+  padding: 8px 12px;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.weather-state-action:hover,
+.weather-state-action:focus-visible {
+  background: #0f766e;
+  border-color: #0f766e;
+  color: #ffffff;
+}
+
 .weather-suggestions-panel .weather-panel-body {
   display: grid;
   gap: 12px;

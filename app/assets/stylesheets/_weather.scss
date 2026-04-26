@@ -1,3 +1,5 @@
+@import "ui_helpers";
+
 .weather-page {
   max-width: 1180px;
   padding-top: 28px;
@@ -51,10 +53,7 @@
 
 .weather-status-card,
 .weather-surface {
-  border: 1px solid #dbe3ea;
-  border-radius: 18px;
-  background: #ffffff;
-  box-shadow: 0 12px 34px rgba(23, 32, 51, 0.06);
+  @include app-surface;
 }
 
 .weather-status-card {
@@ -118,48 +117,31 @@
 .weather-filters select {
   flex: 1 1 180px;
   min-width: 180px;
-  min-height: 44px;
-  padding: 10px 13px;
-  border: 1px solid #dbe3ea;
-  border-radius: 10px;
-  background: #fbfdff;
-  color: #233044;
+  @include app-form-control;
 }
 
 .weather-filters input:focus,
 .weather-filters select:focus {
-  border-color: #0f766e;
-  box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.14);
-  outline: none;
+  @include app-focus-ring;
 }
 
-.weather-action-button,
 .weather-toggle-button,
 .weather-reset-button {
-  min-height: 44px;
-  border-radius: 10px;
-  padding: 10px 16px;
-  font-weight: 800;
-  line-height: 1;
+  @include app-button-base(10px, 10px 16px, 800);
 }
 
 .weather-action-button {
-  border: 1px solid #0f766e;
-  background: #0f766e;
-  color: #ffffff;
+  @include app-primary-button(800);
 }
 
 .weather-action-button:hover,
 .weather-action-button:focus-visible {
-  background: #115e59;
-  border-color: #115e59;
+  @include app-primary-button-hover;
 }
 
 .weather-toggle-button,
 .weather-reset-button {
-  border: 1px solid #cfd8e3;
-  background: #ffffff;
-  color: #4d5d70;
+  @include app-secondary-button;
 }
 
 .weather-toggle-button[aria-pressed="true"] {
@@ -172,8 +154,7 @@
 .weather-toggle-button:focus-visible,
 .weather-reset-button:hover,
 .weather-reset-button:focus-visible {
-  border-color: #0f766e;
-  color: #0f766e;
+  @include app-secondary-button-hover;
 }
 
 .weather-grid {
@@ -298,21 +279,13 @@
 
 .weather-state-action {
   width: fit-content;
+  @include app-soft-action-button(999px, 800, 8px 12px);
   min-height: 36px;
-  border: 1px solid #b9d8d4;
-  border-radius: 999px;
-  background: #eef7f6;
-  color: #0f766e;
-  padding: 8px 12px;
-  font-weight: 800;
-  line-height: 1;
 }
 
 .weather-state-action:hover,
 .weather-state-action:focus-visible {
-  background: #0f766e;
-  border-color: #0f766e;
-  color: #ffffff;
+  @include app-soft-action-hover;
 }
 
 .weather-suggestions-panel .weather-panel-body {
@@ -344,15 +317,10 @@
 .weather-suggestion-save,
 .weather-suggestion-login {
   flex: 0 0 auto;
-  border: 1px solid #d6e4df;
-  border-radius: 999px;
-  background: #eef7f6;
-  color: #0f766e;
-  padding: 8px 12px;
+  @include app-soft-action-button(999px, 800, 8px 12px);
+  border-color: #d6e4df;
   font: inherit;
   font-size: 0.82rem;
-  font-weight: 800;
-  line-height: 1;
   text-decoration: none;
 }
 
@@ -360,9 +328,7 @@
 .weather-suggestion-save:focus-visible,
 .weather-suggestion-login:hover,
 .weather-suggestion-login:focus-visible {
-  background: #0f766e;
-  border-color: #0f766e;
-  color: #ffffff;
+  @include app-soft-action-hover;
 }
 
 .weather-suggestion-save:disabled {

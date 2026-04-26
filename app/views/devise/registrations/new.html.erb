@@ -1,48 +1,40 @@
 <main class="auth-page">
-  <div class="auth-shell">
-    <section class="auth-panel">
-      <p class="auth-kicker">Create account</p>
-      <h1>Keep your Memphis day saved.</h1>
-      <p>An account lets you save stops, update notes and times, mark stops done, and keep reminders connected.</p>
-    </section>
+  <section class="auth-card auth-card-centered">
+    <div class="auth-card-header">
+      <p class="auth-kicker">Sign up</p>
+      <h1>Start saving plans</h1>
+      <p>Use an email you can access for password resets and trip updates.</p>
+    </div>
 
-    <section class="auth-card">
-      <div class="auth-card-header">
-        <p class="auth-kicker">Sign up</p>
-        <h1>Start saving plans</h1>
-        <p>Use an email you can access for password resets and trip updates.</p>
+    <div class="auth-error">
+      <%= render "devise/shared/error_messages", resource: resource %>
+    </div>
+
+    <%= form_for(resource, as: resource_name, url: registration_path(resource_name), html: { class: "auth-form" }) do |f| %>
+      <div class="auth-field">
+        <%= f.label :email %>
+        <%= f.email_field :email, autofocus: true, autocomplete: "email", placeholder: "you@example.com" %>
       </div>
 
-      <div class="auth-error">
-        <%= render "devise/shared/error_messages", resource: resource %>
+      <div class="auth-field">
+        <%= f.label :password %>
+        <% if @minimum_password_length %>
+          <span class="auth-hint"><%= @minimum_password_length %> characters minimum</span>
+        <% end %>
+        <%= f.password_field :password, autocomplete: "new-password", placeholder: "Create a password" %>
       </div>
 
-      <%= form_for(resource, as: resource_name, url: registration_path(resource_name), html: { class: "auth-form" }) do |f| %>
-        <div class="auth-field">
-          <%= f.label :email %>
-          <%= f.email_field :email, autofocus: true, autocomplete: "email", placeholder: "you@example.com" %>
-        </div>
-
-        <div class="auth-field">
-          <%= f.label :password %>
-          <% if @minimum_password_length %>
-            <span class="auth-hint"><%= @minimum_password_length %> characters minimum</span>
-          <% end %>
-          <%= f.password_field :password, autocomplete: "new-password", placeholder: "Create a password" %>
-        </div>
-
-        <div class="auth-field">
-          <%= f.label :password_confirmation %>
-          <%= f.password_field :password_confirmation, autocomplete: "new-password", placeholder: "Repeat your password" %>
-        </div>
-
-        <%= f.submit "Create account", class: "auth-submit" %>
-      <% end %>
-
-      <div class="auth-secondary">
-        <p>Already have an account? <%= link_to "Log in", new_user_session_path, class: "auth-link" %></p>
-        <p><%= link_to "Keep browsing as a guest", dashboard_path, class: "auth-link" %></p>
+      <div class="auth-field">
+        <%= f.label :password_confirmation %>
+        <%= f.password_field :password_confirmation, autocomplete: "new-password", placeholder: "Repeat your password" %>
       </div>
-    </section>
-  </div>
+
+      <%= f.submit "Create account", class: "auth-submit" %>
+    <% end %>
+
+    <div class="auth-secondary">
+      <p>Already have an account? <%= link_to "Log in", new_user_session_path, class: "auth-link" %></p>
+      <p><%= link_to "Keep browsing as a guest", dashboard_path, class: "auth-link" %></p>
+    </div>
+  </section>
 </main>

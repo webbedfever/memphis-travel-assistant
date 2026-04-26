@@ -826,4 +826,3 @@ function bindPlannerPage() {
 }
 
 document.addEventListener("turbo:load", bindPlannerPage);
-document.addEventListener("DOMContentLoaded", bindPlannerPage);

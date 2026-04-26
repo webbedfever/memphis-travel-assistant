@@ -1,3 +1,5 @@
+@import "ui_helpers";
+
 // --------------------------
 // Planner
 // --------------------------
@@ -437,20 +439,12 @@
 
 .complete-planner-item {
   flex: 0 0 auto;
-  border: 1px solid #b9d8d4;
-  border-radius: 6px;
-  background: #eef7f6;
-  color: #0f766e;
-  padding: 8px 11px;
-  font-weight: 700;
-  line-height: 1;
+  @include app-soft-action-button(6px, 700);
 }
 
 .complete-planner-item:hover,
 .complete-planner-item:focus-visible {
-  background: #0f766e;
-  border-color: #0f766e;
-  color: #ffffff;
+  @include app-soft-action-hover;
 }
 
 .complete-planner-item:disabled {
@@ -476,36 +470,20 @@
 }
 
 .planner-reminder-dropdown {
-  border-top: 1px solid #e7edf3;
-  background: #f7fbfa;
+  @include app-details-panel(#f7fbfa);
 }
 
 .planner-edit-dropdown {
-  border-top: 1px solid #e7edf3;
-  background: #fbfcfe;
+  @include app-details-panel;
 }
 
 .planner-edit-dropdown summary {
-  cursor: pointer;
-  padding: 12px 16px;
-  color: #25405f;
-  font-weight: 750;
-  list-style: none;
-}
-
-.planner-edit-dropdown summary::-webkit-details-marker {
-  display: none;
-}
-
-.planner-edit-dropdown summary::after {
-  content: "+";
-  float: right;
-  color: #0f766e;
-  font-weight: 800;
+  @include app-details-summary;
+  @include app-details-marker-toggle;
 }
 
 .planner-edit-dropdown[open] summary::after {
-  content: "-";
+  @include app-open-details-marker;
 }
 
 .planner-edit-form {
@@ -574,20 +552,12 @@
 }
 
 .planner-edit-save {
-  border: 1px solid #b9d8d4;
-  border-radius: 6px;
-  background: #eef7f6;
-  color: #0f766e;
-  padding: 8px 11px;
-  font-weight: 750;
-  line-height: 1;
+  @include app-soft-action-button;
 }
 
 .planner-edit-save:hover,
 .planner-edit-save:focus-visible {
-  background: #0f766e;
-  border-color: #0f766e;
-  color: #ffffff;
+  @include app-soft-action-hover;
 }
 
 .planner-edit-save:disabled {
@@ -604,29 +574,12 @@
 }
 
 .planner-reminder-dropdown summary {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  cursor: pointer;
-  list-style: none;
-  padding: 11px 16px;
-  color: #25405f;
-  font-weight: 750;
-}
-
-.planner-reminder-dropdown summary::-webkit-details-marker {
-  display: none;
-}
-
-.planner-reminder-dropdown summary::after {
-  content: "+";
-  color: #0f766e;
-  font-weight: 800;
+  @include app-details-summary(11px 16px, true);
+  @include app-details-marker-toggle(false);
 }
 
 .planner-reminder-dropdown[open] summary::after {
-  content: "-";
+  @include app-open-details-marker;
 }
 
 .planner-reminder-dropdown summary > span:first-child {
@@ -697,22 +650,14 @@
 
 .planner-reminder-save,
 .planner-browser-notifications {
-  border: 1px solid #b9d8d4;
-  border-radius: 6px;
-  background: #eef7f6;
-  color: #0f766e;
-  padding: 8px 11px;
-  font-weight: 750;
-  line-height: 1;
+  @include app-soft-action-button;
 }
 
 .planner-reminder-save:hover,
 .planner-reminder-save:focus-visible,
 .planner-browser-notifications:hover,
 .planner-browser-notifications:focus-visible {
-  background: #0f766e;
-  border-color: #0f766e;
-  color: #ffffff;
+  @include app-soft-action-hover;
 }
 
 .planner-reminder-save:disabled,
@@ -737,31 +682,16 @@
 }
 
 .planner-item-details {
-  border-top: 1px solid #e7edf3;
-  background: #fbfcfe;
+  @include app-details-panel;
 }
 
 .planner-item-details summary {
-  cursor: pointer;
-  padding: 12px 16px;
-  color: #25405f;
-  font-weight: 750;
-  list-style: none;
-}
-
-.planner-item-details summary::-webkit-details-marker {
-  display: none;
-}
-
-.planner-item-details summary::after {
-  content: "+";
-  float: right;
-  color: #0f766e;
-  font-weight: 800;
+  @include app-details-summary;
+  @include app-details-marker-toggle;
 }
 
 .planner-item-details[open] summary::after {
-  content: "-";
+  @include app-open-details-marker;
 }
 
 .planner-detail-grid {

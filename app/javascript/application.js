@@ -6,29 +6,23 @@ import "@popperjs/core"
 import "bootstrap"
 import autosize from "autosize"
 
-import "./maps/index";
-import "./planner/index";
-import "./weather/index";
-import "./account/home_address";
+import "./maps/index"
+import "./planner/index"
+import "./weather/index"
+import "./account/home_address"
 
 document.addEventListener("turbo:load", () => {
-  const popoverTriggerList = document.querySelectorAll('[data-bs-toggle="popover"]')
-  const popoverList = [...popoverTriggerList].map(
-    popoverTriggerEl => new bootstrap.Popover(popoverTriggerEl)
+  document.querySelectorAll('[data-bs-toggle="popover"]').forEach(
+    element => new bootstrap.Popover(element)
   )
-
-  const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]')
-  const tooltipList = [...tooltipTriggerList].map(
-    tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl)
+  document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(
+    element => new bootstrap.Tooltip(element)
   )
-})
-
-document.addEventListener("turbo:load", () => {
   autosize(document.querySelectorAll("textarea"))
 })
 
 // ---------------------
-// Loading Spinner 
+// Loading Spinner
 // ---------------------
 
 let spinnerTimeout = null

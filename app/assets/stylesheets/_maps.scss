@@ -1,3 +1,5 @@
+@import "ui_helpers";
+
 // --------------------------
 // Maps
 // --------------------------
@@ -95,10 +97,7 @@
 }
 
 .maps-surface {
-  border: 1px solid #dbe3ea;
-  border-radius: 18px;
-  background: #ffffff;
-  box-shadow: 0 12px 34px rgba(23, 32, 51, 0.06);
+  @include app-surface;
 }
 
 .maps-toolbar-panel,
@@ -171,52 +170,35 @@
 .maps-filters select {
   flex: 1 1 180px;
   min-width: 180px;
-  min-height: 44px;
-  padding: 10px 13px;
-  border-radius: 10px;
-  border: 1px solid #dbe3ea;
-  background: #fbfdff;
-  color: #233044;
+  @include app-form-control;
 }
 
 .maps-toolbar input:focus,
 .maps-toolbar select:focus,
 .maps-filters input:focus,
 .maps-filters select:focus {
-  border-color: #0f766e;
-  box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.14);
-  outline: none;
+  @include app-focus-ring;
 }
 
-.maps-action-button,
 .maps-secondary-button,
 .maps-toggle-button,
 .maps-reset-button {
-  min-height: 44px;
-  border-radius: 10px;
-  padding: 10px 16px;
-  font-weight: 700;
-  line-height: 1;
+  @include app-button-base;
 }
 
 .maps-action-button {
-  border: 1px solid #0f766e;
-  background: #0f766e;
-  color: #ffffff;
+  @include app-primary-button;
 }
 
 .maps-action-button:hover,
 .maps-action-button:focus-visible {
-  background: #115e59;
-  border-color: #115e59;
+  @include app-primary-button-hover;
 }
 
 .maps-toggle-button,
 .maps-secondary-button,
 .maps-reset-button {
-  border: 1px solid #cfd8e3;
-  background: #ffffff;
-  color: #4d5d70;
+  @include app-secondary-button;
 }
 
 .maps-toggle-button[aria-pressed="true"] {
@@ -231,8 +213,7 @@
 .maps-secondary-button:focus-visible,
 .maps-toggle-button:hover,
 .maps-toggle-button:focus-visible {
-  border-color: #0f766e;
-  color: #0f766e;
+  @include app-secondary-button-hover;
 }
 
 .maps-route-summary {
@@ -495,21 +476,13 @@
 
 .maps-state-action {
   width: fit-content;
+  @include app-soft-action-button(999px, 750, 8px 12px);
   min-height: 36px;
-  border: 1px solid #b9d8d4;
-  border-radius: 999px;
-  background: #eef7f6;
-  color: #0f766e;
-  padding: 8px 12px;
-  font-weight: 750;
-  line-height: 1;
 }
 
 .maps-state-action:hover,
 .maps-state-action:focus-visible {
-  background: #0f766e;
-  border-color: #0f766e;
-  color: #ffffff;
+  @include app-soft-action-hover;
 }
 
 .maps-group-card {

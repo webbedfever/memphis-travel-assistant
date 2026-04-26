@@ -81,4 +81,3 @@ function bindHomeAddressAutocomplete() {
 }
 
 document.addEventListener("turbo:load", bindHomeAddressAutocomplete);
-document.addEventListener("DOMContentLoaded", bindHomeAddressAutocomplete);

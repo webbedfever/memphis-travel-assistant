@@ -1,0 +1,121 @@
+@mixin app-surface(
+  $border: #dbe3ea,
+  $radius: 18px,
+  $background: #ffffff,
+  $shadow: 0 12px 34px rgba(23, 32, 51, 0.06)
+) {
+  border: 1px solid $border;
+  border-radius: $radius;
+  background: $background;
+  box-shadow: $shadow;
+}
+
+@mixin app-form-control(
+  $border: #dbe3ea,
+  $radius: 10px,
+  $background: #fbfdff,
+  $color: #233044,
+  $padding: 10px 13px,
+  $min-height: 44px
+) {
+  min-height: $min-height;
+  padding: $padding;
+  border: 1px solid $border;
+  border-radius: $radius;
+  background: $background;
+  color: $color;
+}
+
+@mixin app-focus-ring($border: #0f766e, $shadow: rgba(15, 118, 110, 0.14)) {
+  border-color: $border;
+  box-shadow: 0 0 0 3px $shadow;
+  outline: none;
+}
+
+@mixin app-button-base($radius: 10px, $padding: 10px 16px, $weight: 700, $min-height: 44px) {
+  min-height: $min-height;
+  border-radius: $radius;
+  padding: $padding;
+  font-weight: $weight;
+  line-height: 1;
+}
+
+@mixin app-primary-button($weight: 700, $radius: 10px, $padding: 10px 16px, $min-height: 44px) {
+  @include app-button-base($radius, $padding, $weight, $min-height);
+
+  border: 1px solid #0f766e;
+  background: #0f766e;
+  color: #ffffff;
+}
+
+@mixin app-primary-button-hover($color: #115e59) {
+  background: $color;
+  border-color: $color;
+}
+
+@mixin app-secondary-button {
+  border: 1px solid #cfd8e3;
+  background: #ffffff;
+  color: #4d5d70;
+}
+
+@mixin app-secondary-button-hover {
+  border-color: #0f766e;
+  color: #0f766e;
+}
+
+@mixin app-soft-action-button($radius: 6px, $weight: 750, $padding: 8px 11px) {
+  border: 1px solid #b9d8d4;
+  border-radius: $radius;
+  background: #eef7f6;
+  color: #0f766e;
+  padding: $padding;
+  font-weight: $weight;
+  line-height: 1;
+}
+
+@mixin app-soft-action-hover {
+  background: #0f766e;
+  border-color: #0f766e;
+  color: #ffffff;
+}
+
+@mixin app-details-panel($background: #fbfcfe) {
+  border-top: 1px solid #e7edf3;
+  background: $background;
+}
+
+@mixin app-details-summary($padding: 12px 16px, $flex: false) {
+  @if $flex {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+
+  cursor: pointer;
+  padding: $padding;
+  color: #25405f;
+  font-weight: 750;
+  list-style: none;
+}
+
+@mixin app-details-marker-toggle($float: true) {
+  &::-webkit-details-marker {
+    display: none;
+  }
+
+  &::after {
+    content: "+";
+    color: #0f766e;
+    font-weight: 800;
+
+    @if $float {
+      float: right;
+    }
+  }
+}
+
+@mixin app-open-details-marker {
+  content: "-";
+}

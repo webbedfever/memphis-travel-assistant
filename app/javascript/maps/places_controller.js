@@ -1,6 +1,5 @@
 import {
 	bindDirectionAddressButtons,
-	clearMarkers,
 	escapeHtml,
 	normalizeRange,
 	plannerDateTime,
@@ -9,17 +8,15 @@ import {
 	timeToMinutes
 } from "maps/helpers";
 import { bindPlannerButtons, syncPlannerButtons } from "maps/planner_state";
+import ResultsController from "maps/results_controller";
 
-export default class PlacesController {
+export default class PlacesController extends ResultsController {
 	constructor(mapController) {
-		this.mapController = mapController;
-		this.markers = [];
-		this.infoWindow = new google.maps.InfoWindow();
+		super(mapController, { countId: "placeCount" });
 	}
 
 	async load() {
-		clearMarkers(this.markers);
-		this.markers = [];
+		this.resetMarkers();
 
 		const container = document.getElementById("placeList");
 		this.updateCountLabel("Loading...");
@@ -176,7 +173,6 @@ export default class PlacesController {
 
 			marker.addListener("click", () => {
 				const address = place.address || "";
-				const encodedAddress = encodeURIComponent(address);
 				const category = escapeHtml(this.formatCategory(place.category));
 				const rating = escapeHtml(place.rating || "N/A");
 				const status = escapeHtml(this.formatOpenStatus(place));
@@ -198,12 +194,7 @@ export default class PlacesController {
 							<span>Rating: ${rating}</span>
 							<span>${hours}</span>
 						</div>
-						${address ? `
-							<div class="maps-marker-actions">
-								<button type="button" class="maps-marker-action" onclick="window.useMarkerDestination(decodeURIComponent('${encodedAddress}'))">Route Here</button>
-								<button type="button" class="maps-marker-action" onclick="window.useMarkerOrigin(decodeURIComponent('${encodedAddress}'))">Start Here</button>
-							</div>
-						` : ""}
+						${this.renderRouteActions(address, { includeOrigin: true })}
 						${links ? `<div class="maps-marker-links">${links}</div>` : ""}
 					</div>
 				`);
@@ -305,43 +296,17 @@ export default class PlacesController {
 	}
 
 	renderPlaceLinks(website, googleUrl) {
-		const links = [];
-		if (website) links.push(`<a href="${website}" target="_blank" rel="noopener">Website</a>`);
-		if (googleUrl) links.push(`<a href="${googleUrl}" target="_blank" rel="noopener">Google listing</a>`);
-
-		if (links.length === 0) return "";
-
-		return `<div class="maps-result-links">${links.join("")}</div>`;
+		return this.renderExternalLinks([
+			{ label: "Website", url: website },
+			{ label: "Google listing", url: googleUrl }
+		], "maps-result-links");
 	}
 
 	renderMarkerLinks(website, googleUrl) {
-		const links = [];
-		if (website) links.push(`<a href="${website}" target="_blank" rel="noopener">Website</a>`);
-		if (googleUrl) links.push(`<a href="${googleUrl}" target="_blank" rel="noopener">Google listing</a>`);
-		return links.join("");
-	}
-
-	renderAddressButton(address) {
-		const safeAddress = escapeHtml(address);
-
-		return `
-			<button
-				type="button"
-				class="maps-address-button"
-				data-address="${safeAddress}"
-				title="Use as directions destination">
-				${safeAddress}
-			</button>
-		`;
-	}
-
-	updateCountLabel(label) {
-		const count = document.getElementById("placeCount");
-		if (count) count.textContent = label;
-	}
-
-	countLabel(total, noun) {
-		return `${total} ${noun}${total === 1 ? "" : "s"} available`;
+		return this.renderExternalLinks([
+			{ label: "Website", url: website },
+			{ label: "Google listing", url: googleUrl }
+		]);
 	}
 
 	dateOptions(startDate, endDate) {

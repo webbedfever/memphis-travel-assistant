@@ -20,6 +20,7 @@
 @import "rails_bootstrap_forms";
 
 @import "base";
+@import "ui_helpers";
 @import "auth";
 @import "loading_spinner";
 @import "home";
@@ -27,3 +28,42 @@
 @import "maps";
 @import "weather";
 @import "planner";
+
+:root {
+  --mta-focus: rgba(15, 118, 110, 0.18);
+}
+
+html {
+  background: #f5f8fb;
+}
+
+body {
+  min-height: 100vh;
+  background: linear-gradient(180deg, #ffffff 0, #f5f8fb 430px);
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+button,
+a,
+input,
+select,
+textarea,
+summary {
+  transition: background-color 160ms ease, border-color 160ms ease, color 160ms ease, box-shadow 160ms ease;
+}
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+summary:focus-visible {
+  outline: 3px solid var(--mta-focus);
+  outline-offset: 2px;
+}

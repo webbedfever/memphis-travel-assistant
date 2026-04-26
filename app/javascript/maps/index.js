@@ -393,5 +393,4 @@ function renderMapFailure(error) {
 }
 
 document.addEventListener("turbo:load", waitForGoogleMaps);
-document.addEventListener("DOMContentLoaded", waitForGoogleMaps);
 document.addEventListener("turbo:before-cache", () => app.reset());

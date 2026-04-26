@@ -1,6 +1,5 @@
 import {
 	bindDirectionAddressButtons,
-	clearMarkers,
 	escapeHtml,
 	formatCalendarDate,
 	formatDate,
@@ -12,17 +11,15 @@ import {
 	timeToMinutes
 } from "maps/helpers";
 import { bindPlannerButtons, syncPlannerButtons } from "maps/planner_state";
+import ResultsController from "maps/results_controller";
 
-export default class EventsController {
+export default class EventsController extends ResultsController {
 	constructor(mapController) {
-		this.mapController = mapController;
-		this.markers = [];
-		this.infoWindow = new google.maps.InfoWindow();
+		super(mapController, { countId: "eventCount" });
 	}
 
 	async load() {
-		clearMarkers(this.markers);
-		this.markers = [];
+		this.resetMarkers();
 
 		const container = document.getElementById("eventList");
 		this.updateCountLabel("Loading...");
@@ -111,7 +108,7 @@ export default class EventsController {
 									<span>${formatCalendarDate(event.date)}</span>
 									<span>${formatEventTime(event.time)}</span>
 								</div>
-								${ticketmasterUrl ? `<div class="maps-result-links"><a href="${ticketmasterUrl}" target="_blank" rel="noopener">Ticketmaster</a></div>` : ""}
+								${this.renderExternalLinks([{ label: "Ticketmaster", url: ticketmasterUrl }], "maps-result-links")}
 							</div>
 							<button
 								type="button"
@@ -162,8 +159,6 @@ export default class EventsController {
 					`)
 					.join("");
 
-				const encodedAddress = encodeURIComponent(group.address || group.venue || "");
-
 				this.infoWindow.setContent(`
 					<div class="maps-marker-window">
 						<div class="maps-marker-heading">
@@ -171,9 +166,7 @@ export default class EventsController {
 							<span>${this.countLabel(group.events.length, "event")}</span>
 						</div>
 						${group.address ? `<p class="maps-marker-address">${escapeHtml(group.address)}</p>` : ""}
-						<div class="maps-marker-actions">
-							<button type="button" class="maps-marker-action" onclick="window.useMarkerDestination(decodeURIComponent('${encodedAddress}'))">Route Here</button>
-						</div>
+						${this.renderRouteActions(group.address || group.venue)}
 						<ul class="maps-marker-list">${items}</ul>
 					</div>
 				`);
@@ -211,31 +204,6 @@ export default class EventsController {
 
 	renderTicketmasterInfoWindowLink(event) {
 		const ticketmasterUrl = sanitizeUrl(event.ticketmaster_url);
-		if (!ticketmasterUrl) return "";
-
-		return `<a href="${ticketmasterUrl}" target="_blank" rel="noopener">Ticketmaster</a>`;
-	}
-
-	renderAddressButton(address) {
-		const safeAddress = escapeHtml(address);
-
-		return `
-			<button
-				type="button"
-				class="maps-address-button"
-				data-address="${safeAddress}"
-				title="Use as directions destination">
-				${safeAddress}
-			</button>
-		`;
-	}
-
-	updateCountLabel(label) {
-		const count = document.getElementById("eventCount");
-		if (count) count.textContent = label;
-	}
-
-	countLabel(total, noun) {
-		return `${total} ${noun}${total === 1 ? "" : "s"} available`;
+		return this.renderExternalLinks([{ label: "Ticketmaster", url: ticketmasterUrl }]);
 	}
 }

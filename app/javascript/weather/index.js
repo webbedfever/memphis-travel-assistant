@@ -465,4 +465,3 @@ function mountWeatherPage() {
 }
 
 document.addEventListener("turbo:load", mountWeatherPage);
-document.addEventListener("DOMContentLoaded", mountWeatherPage);

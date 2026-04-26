@@ -1,3 +1,5 @@
+@import "ui_helpers";
+
 .auth-page {
   max-width: 1080px;
   margin: 0 auto;
@@ -5,10 +7,7 @@
 }
 
 .auth-card {
-  border: 1px solid #d7e2ea;
-  border-radius: 20px;
-  background: #ffffff;
-  box-shadow: 0 18px 42px rgba(23, 32, 51, 0.07);
+  @include app-surface(#d7e2ea, 20px, #ffffff, 0 18px 42px rgba(23, 32, 51, 0.07));
 }
 
 .auth-kicker {
@@ -70,18 +69,11 @@
 
 .auth-field input {
   width: 100%;
-  min-height: 46px;
-  border: 1px solid #cfd9e3;
-  border-radius: 10px;
-  background: #fbfdff;
-  color: #172033;
-  padding: 10px 12px;
+  @include app-form-control(#cfd9e3, 10px, #fbfdff, #172033, 10px 12px, 46px);
 }
 
 .auth-field input:focus {
-  border-color: #0f766e;
-  box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.14);
-  outline: none;
+  @include app-focus-ring;
 }
 
 .auth-row {
@@ -116,20 +108,28 @@
   text-decoration: underline;
 }
 
-.auth-submit {
-  min-height: 48px;
-  border: 1px solid #0f766e;
-  border-radius: 10px;
-  background: #0f766e;
-  color: #ffffff;
-  padding: 10px 16px;
+.auth-danger-link {
+  border: 0;
+  background: transparent;
+  color: #b4232b;
+  padding: 0;
+  font: inherit;
   font-weight: 800;
+}
+
+.auth-danger-link:hover,
+.auth-danger-link:focus-visible {
+  color: #8f1d24;
+  text-decoration: underline;
+}
+
+.auth-submit {
+  @include app-primary-button(800, 10px, 10px 16px, 48px);
 }
 
 .auth-submit:hover,
 .auth-submit:focus-visible {
-  background: #115e59;
-  border-color: #115e59;
+  @include app-primary-button-hover;
 }
 
 .auth-secondary {
@@ -183,15 +183,6 @@
   width: fit-content;
 }
 
-.account-pending-email {
-  padding: 10px 12px;
-  border: 1px solid #eed8af;
-  border-radius: 10px;
-  background: #fff8eb;
-  color: #8a6216 !important;
-  font-weight: 700;
-}
-
 .account-current-value {
   margin: 0;
   padding: 10px 12px;
@@ -200,57 +191,6 @@
   background: #f7fbfa;
   color: #30544b !important;
   font-weight: 700;
-}
-
-.account-dropdown {
-  border: 1px solid #dbe3ea;
-  border-radius: 14px;
-  background: #fbfcfe;
-  overflow: hidden;
-}
-
-.account-dropdown summary {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  cursor: pointer;
-  list-style: none;
-  padding: 16px;
-}
-
-.account-dropdown summary::-webkit-details-marker {
-  display: none;
-}
-
-.account-dropdown summary::after {
-  content: "+";
-  color: #0f766e;
-  font-size: 1.15rem;
-  font-weight: 800;
-}
-
-.account-dropdown[open] summary::after {
-  content: "-";
-}
-
-.account-dropdown summary span {
-  display: grid;
-  gap: 4px;
-}
-
-.account-dropdown summary strong {
-  color: #1f2c3f;
-  font-size: 1rem;
-}
-
-.account-dropdown summary small {
-  color: #607084;
-  line-height: 1.45;
-}
-
-.account-dropdown-form {
-  padding: 0 16px 16px;
 }
 
 .auth-error {

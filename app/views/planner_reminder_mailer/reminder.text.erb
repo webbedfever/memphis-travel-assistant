@@ -1,0 +1,13 @@
+<%= @planner_item.title %>
+
+This is your reminder from Memphis Travel Assistant.
+
+<% if @planner_item.start_time.present? %>
+Starts: <%= @planner_item.start_time.strftime("%A, %B %-d at %-I:%M %p") %>
+<% end %>
+<% if @planner_item.location_name.present? || @planner_item.address.present? %>
+Location: <%= [@planner_item.location_name, @planner_item.address].compact_blank.join(" - ") %>
+<% end %>
+<% if @planner_item.notes.present? %>
+Notes: <%= @planner_item.notes %>
+<% end %>

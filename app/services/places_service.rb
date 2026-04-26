@@ -5,15 +5,16 @@ class PlacesService
 	DETAILS_URL = "https://maps.googleapis.com/maps/api/place/details/json"
 
 	TYPES = ["restaurant", "cafe", "bar", "tourist_attraction", "museum", "park", "store"]
-	RESULT_LIMIT = 36
+	RESULT_LIMIT = 50
+	DETAILS_BATCH_SIZE = 10
+	REQUEST_TIMEOUT = 5
 
-	def self.nearby_open_places(lat = 35.1495, lng = -90.0490, radius = 5000, type = nil, date = nil)
-		all_places = []
+	def self.nearby_open_places(lat = 35.1495, lng = -90.0490, radius = 5000, type = nil, date = nil, open_now_only = false)
 		target_date = parse_date(date)
 
 		types_to_search = type.present? ? [type] : TYPES
 
-		types_to_search.each do |t|
+		nearby_results = concurrent_map(types_to_search) do |t|
 			query = {
 				location: "#{lat},#{lng}",
 				radius: radius,
@@ -21,15 +22,17 @@ class PlacesService
 				key: ENV['GOOGLE_API_KEY']
 			}
 
-			response = HTTParty.get(BASE_URL, query: query)
-			next unless response.success?
+			response = google_get(BASE_URL, query)
+			next [] unless response&.success?
 
 			data = response.parsed_response
 			results = data["results"] || []
 
 			results.each { |place| place["_searched_type"] = t }
-			all_places.concat(results)
+			results
 		end
+
+		all_places = nearby_results.flatten
 
 		unique = all_places.uniq do |place|
 			place["place_id"].presence || [
@@ -38,10 +41,16 @@ class PlacesService
 			]
 		end
 
-		limited_places = type.present? ? unique.first(RESULT_LIMIT) : balanced_places(unique)
+		filtered_places = open_now_only ? unique.select { |place| place.dig("opening_hours", "open_now") == true } : unique
+		limited_places = type.present? ? filtered_places.first(RESULT_LIMIT) : balanced_places(filtered_places)
 
-		limited_places.map do |place|
-			details = place_details(place["place_id"])
+		places_with_details = limited_places.each_slice(DETAILS_BATCH_SIZE).flat_map do |places|
+			concurrent_map(places) do |place|
+				[place, place_details(place["place_id"])]
+			end
+		end
+
+		places_with_details.map do |place, details|
 			opening_hours = details["opening_hours"] || place["opening_hours"] || {}
 			weekday_hours = hours_for_day(opening_hours, target_date)
 
@@ -58,6 +67,7 @@ class PlacesService
 				phone: details["formatted_phone_number"],
 				website: details["website"],
 				google_url: details["url"],
+				place_id: place["place_id"],
 				category: place["_searched_type"]
 			}
 		end
@@ -91,16 +101,21 @@ class PlacesService
 	def self.place_details(place_id)
 		return {} if place_id.blank?
 
+		cache_key = "google_place_details/#{place_id}"
+		return Rails.cache.read(cache_key) || {} if Rails.cache.exist?(cache_key)
+
 		query = {
 			place_id: place_id,
 			fields: "formatted_phone_number,opening_hours,url,website",
 			key: ENV['GOOGLE_API_KEY']
 		}
 
-		response = HTTParty.get(DETAILS_URL, query: query)
-		return {} unless response.success?
+		response = google_get(DETAILS_URL, query)
+		return {} unless response&.success?
 
-		response.parsed_response["result"] || {}
+		details = response.parsed_response["result"] || {}
+		Rails.cache.write(cache_key, details, expires_in: 12.hours)
+		details
 	end
 
 	def self.hours_for_day(opening_hours, date)
@@ -116,5 +131,17 @@ class PlacesService
 		Date.parse(date)
 	rescue ArgumentError
 		Date.current
+	end
+
+	def self.concurrent_map(items)
+		items.map do |item|
+			Thread.new { yield(item) }
+		end.map(&:value)
+	end
+
+	def self.google_get(url, query)
+		HTTParty.get(url, query: query, timeout: REQUEST_TIMEOUT)
+	rescue HTTParty::Error, SocketError, Net::OpenTimeout, Net::ReadTimeout
+		nil
 	end
 end

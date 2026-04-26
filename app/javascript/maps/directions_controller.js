@@ -6,13 +6,14 @@ export default class DirectionsController {
 	getDirections() {
 		const origin = document.getElementById("origin").value;
 		const destination = document.getElementById("destination").value;
+		const travelMode = document.getElementById("travelMode")?.value || "DRIVING";
 		const { directionsRenderer, directionsService } = this.mapController;
 
 		directionsService.route(
 			{
 				origin,
 				destination,
-				travelMode: "DRIVING"
+				travelMode
 			},
 			(result, status) => {
 				if (status === "OK") {

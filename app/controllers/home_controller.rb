@@ -1,9 +1,7 @@
 # frozen_string_literal: true
 
 class HomeController < ApplicationController
-  def index
-    @posts = Post.all.order(created_at: :desc)
-  end
+  def index; end
 
   def next
     if user_signed_in?

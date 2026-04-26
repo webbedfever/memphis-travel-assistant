@@ -1,46 +1,35 @@
-<h1>Memphis Travel Assistant</h1>
+<main class="home-page">
+  <section class="home-hero">
+    <div class="home-hero-copy">
+      <p class="home-eyebrow">Memphis Travel Assistant</p>
+      <h1>Plan a better Memphis day.</h1>
+      <p class="home-lede">
+        Find nearby places, check conditions, map your route, and keep the best stops in one planner.
+      </p>
+    </div>
 
-<style>
-  .feed {
-    margin-top: 80px;
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-    align-items: center;
-  }
-
-  .post-card {
-    width: 400px;
-    border: 1px solid #ddd;
-    border-radius: 10px;
-    overflow: hidden;
-    text-decoration: none;
-    color: black;
-  }
-
-  .post-card img {
-    width: 100%;
-    height: 250px;
-    object-fit: cover;
-  }
-
-  .post-card-content {
-    padding: 10px;
-  }
-</style>
-
-<!-- FEED -->
-<div class="feed">
-  <% @posts.each do |post| %>
-    <a href="/posts/<%= post.id %>" class="post-card">
-      <% if post.image_url.present? %>
-        <img src="<%= post.image_url %>">
-      <% end %>
-
-      <div class="post-card-content">
-        <h3><%= post.title %></h3>
-        <p><%= post.description %></p>
+    <div class="home-trip-panel" aria-label="Planning overview">
+      <div class="home-panel-heading">
+        <span>How it helps</span>
+        <strong>Your trip, organized</strong>
       </div>
-    </a>
-  <% end %>
-</div>
+
+      <div class="home-overview-list">
+        <div class="home-overview-item">
+          <span>1</span>
+          <strong>Discover Memphis options nearby.</strong>
+        </div>
+
+        <div class="home-overview-item">
+          <span>2</span>
+          <strong>Check timing, weather, hours, and routes.</strong>
+        </div>
+
+        <div class="home-overview-item">
+          <span>3</span>
+          <strong>Keep the places you like in one plan.</strong>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>

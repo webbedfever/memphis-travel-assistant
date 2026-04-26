@@ -1,4 +1,11 @@
-import { clearMarkers, escapeHtml, normalizeRange, sanitizeUrl, timeToMinutes } from "maps/helpers";
+import {
+	bindDirectionAddressButtons,
+	clearMarkers,
+	escapeHtml,
+	normalizeRange,
+	sanitizeUrl,
+	timeToMinutes
+} from "maps/helpers";
 import { bindPlannerButtons, syncPlannerButtons } from "maps/planner_state";
 
 export default class PlacesController {
@@ -13,6 +20,7 @@ export default class PlacesController {
 		this.markers = [];
 
 		const container = document.getElementById("placeList");
+		this.updateCountLabel("Loading...");
 		container.innerHTML = "<p>Loading places...</p>";
 
 		const bounds = this.mapController.getBounds();
@@ -32,6 +40,7 @@ export default class PlacesController {
 
 		if (type) params.set("type", type);
 		if (date) params.set("date", date);
+		if (openNowOnly) params.set("open_now", "true");
 		const query = params.toString();
 
 		try {
@@ -45,10 +54,12 @@ export default class PlacesController {
 				openNowOnly
 			});
 
+			this.updateCountLabel(this.countLabel(places.length, "place"));
 			this.renderList(places, type);
 			this.renderMarkers(places);
 			this.bindPlannerButtons();
 		} catch (error) {
+			this.updateCountLabel("Unavailable");
 			container.innerHTML = "<p>Unable to load places.</p>";
 			console.error(error);
 		}
@@ -58,6 +69,7 @@ export default class PlacesController {
 		const container = document.getElementById("placeList");
 
 		if (places.length === 0) {
+			this.updateCountLabel(this.countLabel(0, "place"));
 			container.innerHTML = "<p>No places found</p>";
 			return;
 		}
@@ -65,6 +77,7 @@ export default class PlacesController {
 		container.innerHTML = places.map(place => {
 			const name = escapeHtml(place.name || "Unnamed place");
 			const address = escapeHtml(place.address || "Address unavailable");
+			const addressAction = place.address ? this.renderAddressButton(place.address) : `<span>${address}</span>`;
 			const rating = escapeHtml(place.rating || "N/A");
 			const hours = escapeHtml(this.formatHours(place));
 			const status = escapeHtml(this.formatOpenStatus(place));
@@ -79,7 +92,7 @@ export default class PlacesController {
 				address: place.address,
 				latitude: place.lat,
 				longitude: place.lng,
-				external_id: `google-place-${place.name}-${place.lat}-${place.lng}`,
+				external_id: place.place_id || `google-place-${place.name}-${place.lat}-${place.lng}`,
 				source: "google_places",
 				category: type || place.category,
 				rating: place.rating,
@@ -97,7 +110,7 @@ export default class PlacesController {
 						<div class="maps-result-copy">
 							<strong>${name}</strong>
 							<div class="maps-result-meta">
-								<span>${address}</span>
+								${addressAction}
 								<span>Rating: ${rating}</span>
 								<span>${status}</span>
 								<span>${hours}</span>
@@ -118,6 +131,7 @@ export default class PlacesController {
 		}).join("");
 
 		syncPlannerButtons(container);
+		bindDirectionAddressButtons(container);
 	}
 
 	renderMarkers(places) {
@@ -240,5 +254,28 @@ export default class PlacesController {
 		if (links.length === 0) return "";
 
 		return `<div class="maps-result-links">${links.join("")}</div>`;
+	}
+
+	renderAddressButton(address) {
+		const safeAddress = escapeHtml(address);
+
+		return `
+			<button
+				type="button"
+				class="maps-address-button"
+				data-address="${safeAddress}"
+				title="Use as directions destination">
+				${safeAddress}
+			</button>
+		`;
+	}
+
+	updateCountLabel(label) {
+		const count = document.getElementById("placeCount");
+		if (count) count.textContent = label;
+	}
+
+	countLabel(total, noun) {
+		return `${total} ${noun}${total === 1 ? "" : "s"} available`;
 	}
 }

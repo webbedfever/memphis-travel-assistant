@@ -40,8 +40,10 @@ class MapsPage {
 			console.error(error);
 		}
 
-		await this.eventsController.load();
-		await this.placesController.load();
+		await Promise.all([
+			this.eventsController.load(),
+			this.placesController.load()
+		]);
 	}
 
 	async applyFilters() {

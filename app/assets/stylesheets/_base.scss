@@ -15,3 +15,95 @@ main {
 body {
   font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
 }
+
+.app-navbar {
+  position: sticky;
+  top: 0;
+  z-index: 1020;
+  border-bottom: 1px solid rgba(216, 224, 232, 0.9);
+  background: rgba(255, 255, 255, 0.94);
+  box-shadow: 0 10px 28px rgba(23, 32, 51, 0.06);
+  backdrop-filter: blur(12px);
+}
+
+.app-navbar .container-fluid {
+  max-width: 1180px;
+  min-height: 70px;
+  margin: 0 auto;
+  padding: 0 16px;
+}
+
+.app-navbar .navbar-brand {
+  color: #172033;
+  font-weight: 800;
+  letter-spacing: 0;
+}
+
+.app-navbar .navbar-brand:hover,
+.app-navbar .navbar-brand:focus-visible {
+  color: #0f766e;
+}
+
+.app-navbar .navbar-nav {
+  align-items: center;
+  gap: 4px;
+}
+
+.app-navbar .nav-link {
+  margin: 0 2px;
+  padding: 9px 12px;
+  border-radius: 6px;
+  color: #4d5d70;
+  font-weight: 750;
+}
+
+.app-navbar .nav-link:hover,
+.app-navbar .nav-link:focus-visible {
+  background: #eef7f6;
+  color: #0f766e;
+}
+
+.app-navbar .nav-link.active {
+  background: #0f766e;
+  color: #ffffff;
+}
+
+.app-navbar .navbar-toggler {
+  border-color: #cfd8e3;
+  border-radius: 8px;
+  padding: 8px 10px;
+}
+
+.app-navbar .navbar-toggler:focus {
+  box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.16);
+}
+
+.navbar-account {
+  margin-left: 14px;
+}
+
+.app-navbar .btn-dark {
+  border-color: #172033;
+  border-radius: 6px;
+  background: #172033;
+  font-weight: 750;
+}
+
+@media (max-width: 991.98px) {
+  .app-navbar .navbar-collapse {
+    padding: 12px 0 16px;
+  }
+
+  .app-navbar .navbar-nav {
+    align-items: stretch;
+  }
+
+  .app-navbar .nav-link {
+    margin: 2px 0;
+  }
+
+  .navbar-account {
+    margin-top: 10px;
+    margin-left: 0;
+  }
+}

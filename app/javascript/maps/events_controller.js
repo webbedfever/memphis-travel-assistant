@@ -1,4 +1,5 @@
 import {
+	bindDirectionAddressButtons,
 	clearMarkers,
 	escapeHtml,
 	formatDate,
@@ -22,6 +23,7 @@ export default class EventsController {
 		this.markers = [];
 
 		const container = document.getElementById("eventList");
+		this.updateCountLabel("Loading...");
 		container.innerHTML = "<p>Loading events...</p>";
 
 		const start = document.getElementById("startDate").value;
@@ -48,10 +50,12 @@ export default class EventsController {
 			const events = this.filterEvents(await response.json(), { startTime, endTime });
 			const grouped = groupByVenue(events);
 
+			this.updateCountLabel(this.countLabel(events.length, "event"));
 			this.renderList(grouped);
 			this.renderMarkers(grouped);
 			this.bindPlannerButtons();
 		} catch (error) {
+			this.updateCountLabel("Unavailable");
 			container.innerHTML = "<p>Unable to load events.</p>";
 			console.error(error);
 		}
@@ -61,6 +65,7 @@ export default class EventsController {
 		const container = document.getElementById("eventList");
 
 		if (groups.length === 0) {
+			this.updateCountLabel(this.countLabel(0, "event"));
 			container.innerHTML = "<p>No events found</p>";
 			return;
 		}
@@ -111,13 +116,14 @@ export default class EventsController {
 			return `
 				<div class="maps-group-card">
 					<strong class="maps-group-title">${group.venue}</strong>
-					${group.address ? `<div class="maps-result-meta"><span>${escapeHtml(group.address)}</span></div>` : ""}
+					${group.address ? `<div class="maps-result-meta">${this.renderAddressButton(group.address)}</div>` : ""}
 					<ul>${items}</ul>
 				</div>
 			`;
 		}).join("");
 
 		syncPlannerButtons(container);
+		bindDirectionAddressButtons(container);
 	}
 
 	renderMarkers(groups) {
@@ -188,5 +194,28 @@ export default class EventsController {
 		if (!ticketmasterUrl) return "";
 
 		return `<br><a href="${ticketmasterUrl}" target="_blank" rel="noopener">Ticketmaster</a>`;
+	}
+
+	renderAddressButton(address) {
+		const safeAddress = escapeHtml(address);
+
+		return `
+			<button
+				type="button"
+				class="maps-address-button"
+				data-address="${safeAddress}"
+				title="Use as directions destination">
+				${safeAddress}
+			</button>
+		`;
+	}
+
+	updateCountLabel(label) {
+		const count = document.getElementById("eventCount");
+		if (count) count.textContent = label;
+	}
+
+	countLabel(total, noun) {
+		return `${total} ${noun}${total === 1 ? "" : "s"} available`;
 	}
 }

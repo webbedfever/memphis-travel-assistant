@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2026_04_20_142246) do
+ActiveRecord::Schema[7.1].define(version: 2026_04_22_162936) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -67,6 +67,10 @@ ActiveRecord::Schema[7.1].define(version: 2026_04_20_142246) do
     t.string "website"
     t.string "google_url"
     t.string "ticketmaster_url"
+    t.boolean "reminder_enabled", default: false, null: false
+    t.datetime "reminder_at"
+    t.integer "reminder_minutes_before"
+    t.datetime "reminder_sent_at"
     t.index ["user_id", "external_id", "source"], name: "index_planner_items_on_user_id_and_external_id_and_source", unique: true
     t.index ["user_id"], name: "index_planner_items_on_user_id"
   end

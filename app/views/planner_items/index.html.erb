@@ -23,8 +23,14 @@
 							<% website_url = safe_external_url(item.website) %>
 							<% google_url = safe_external_url(item.google_url) %>
 							<% ticketmaster_url = safe_external_url(item.ticketmaster_url) %>
+							<% reminder_location = item.location_name.presence || item.address %>
 
-							<article class="planner-item">
+							<article
+								class="planner-item"
+								data-reminder-item
+								data-reminder-at="<%= item.reminder_at&.iso8601 %>"
+								data-reminder-title="<%= item.title %>"
+								data-reminder-location="<%= reminder_location %>">
 								<div class="planner-item-main">
 									<div class="planner-item-copy">
 										<div class="planner-item-title-row">
@@ -55,6 +61,60 @@
 										Remove
 									</button>
 								</div>
+
+								<details class="planner-reminder-dropdown" <%= "open" if item.reminder_enabled? %>>
+									<summary>
+										<span>Notifications</span>
+										<span class="planner-reminder-status"><%= item.reminder_label %></span>
+									</summary>
+
+									<form class="planner-reminder-form" data-planner-item-id="<%= item.id %>">
+										<%= hidden_field_tag "planner_item[reminder_enabled]", "0" %>
+
+										<label class="planner-reminder-toggle">
+											<%= check_box_tag "planner_item[reminder_enabled]", "1", item.reminder_enabled?, class: "planner-reminder-enabled" %>
+											<span>Send reminder</span>
+										</label>
+
+										<div class="planner-reminder-controls">
+											<% if item.start_time.present? %>
+												<label>
+													<span>When</span>
+													<%= select_tag(
+														"planner_item[reminder_minutes_before]",
+														options_for_select(
+															[
+																["Custom time", ""],
+																["At start time", 0],
+																["15 minutes before", 15],
+																["30 minutes before", 30],
+																["1 hour before", 60],
+																["1 day before", 1440]
+															],
+															item.reminder_minutes_before
+														),
+														class: "planner-reminder-offset"
+													) %>
+												</label>
+											<% end %>
+
+											<label>
+												<span>Custom time</span>
+												<%= datetime_field_tag(
+													"planner_item[reminder_at]",
+													item.reminder_at&.strftime("%Y-%m-%dT%H:%M"),
+													class: "planner-reminder-at"
+												) %>
+											</label>
+
+											<button type="submit" class="planner-reminder-save">Save</button>
+										</div>
+
+										<div class="planner-reminder-footer">
+											<button type="button" class="planner-browser-notifications">Browser notifications</button>
+										</div>
+									</form>
+								</details>
 
 								<details class="planner-item-details">
 									<summary>Details</summary>

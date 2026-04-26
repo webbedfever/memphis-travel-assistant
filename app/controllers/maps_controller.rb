@@ -31,7 +31,8 @@ class MapsController < ApplicationController
             params[:lng],
             params[:radius],
             params[:type],
-            params[:date]
+            params[:date],
+            ActiveModel::Type::Boolean.new.cast(params[:open_now])
         )
 
         render json: places

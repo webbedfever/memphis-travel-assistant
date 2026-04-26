@@ -1,17 +1,9 @@
-<nav class="navbar navbar-expand-lg bg-light">
+<nav class="navbar navbar-expand-lg app-navbar">
   <div class="container-fluid">
 
-    <a class="navbar-brand d-flex align-items-center gap-2" href="/">
+    <%= link_to root_path, class: "navbar-brand d-flex align-items-center gap-2" do %>
       <span>Memphis Travel Assistant</span>
-
-      <div style="
-        width: 28px;
-        height: 28px;
-        background-color: #ccc;
-        border-radius: 4px;
-        display: inline-block;
-      "></div>
-    </a>
+    <% end %>
 
     <button class="navbar-toggler" type="button"
             data-bs-toggle="collapse"
@@ -28,45 +20,38 @@
       <ul class="navbar-nav me-auto">
 
         <li class="nav-item">
-          <a class="nav-link active" href="/">
+          <%= link_to root_path, class: "nav-link #{active_class(root_path)}" do %>
             Home
-          </a>
+          <% end %>
         </li>
 
         <li class="nav-item">
-          <a class="nav-link" href="/maps">
+          <%= link_to maps_path, class: "nav-link #{active_class(maps_path)}" do %>
             Maps
-          </a>
+          <% end %>
         </li>
 
         <li class="nav-item">
-          <a class="nav-link" href="/dashboard">
+          <%= link_to dashboard_path, class: "nav-link #{active_class(dashboard_path)}" do %>
             Dashboard
-          </a>
+          <% end %>
         </li>
 
         <li class="nav-item">
-          <a class="nav-link" href="/planner">
+          <%= link_to planner_path, class: "nav-link #{active_class(planner_path)}" do %>
             My Planner
-          </a>
+          <% end %>
         </li>
 
-        <li class="nav-item dropdown">
-          <a class="nav-link dropdown-toggle" href="#" role="button"
-             data-bs-toggle="dropdown" aria-expanded="false">
-            More
-          </a>
-
-          <ul class="dropdown-menu">
-            <li><a class="dropdown-item" href="/weather">Weather</a></li>
-            <li><a class="dropdown-item" href="/posts">Posts</a></li>
-            <li><a class="dropdown-item" href="/events">Events</a></li>
-          </ul>
+        <li class="nav-item">
+          <%= link_to weather_path, class: "nav-link #{active_class(weather_path)}" do %>
+            Weather
+          <% end %>
         </li>
 
       </ul>
 
-      <div class="d-flex align-items-center">
+      <div class="navbar-account d-flex align-items-center">
 
         <% if user_signed_in? %>
           <%= button_to "Sign Out",

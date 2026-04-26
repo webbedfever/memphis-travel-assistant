@@ -1,114 +1,264 @@
-// ------------------------------
-// UIVERSE LOGIN / FORM STYLES
-// ------------------------------
+.auth-page {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 34px 16px 56px;
+}
 
-body .form {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-
-  background-color: #ffffff;
-  padding: 30px;
-  width: 450px;
+.auth-card {
+  border: 1px solid #d7e2ea;
   border-radius: 20px;
-
-  margin: 120px auto; // centers login box
-
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
-    Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+  background: #ffffff;
+  box-shadow: 0 18px 42px rgba(23, 32, 51, 0.07);
 }
 
-/* Placeholder styling */
-::placeholder {
-  font-family: inherit;
+.auth-kicker {
+  margin: 0;
+  color: #0f766e;
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 
-/* Labels */
-.flex-column > label {
-  color: #151717;
-  font-weight: 600;
+.auth-card h1 {
+  margin: 0;
+  color: #172033;
+  font-size: clamp(2rem, 4vw, 3rem);
+  font-weight: 800;
+  letter-spacing: 0;
+  line-height: 1.05;
 }
 
-/* Input container */
-.inputForm {
-  border: 1.5px solid #ecedec;
-  border-radius: 10px;
-  height: 50px;
-
-  display: flex;
-  align-items: center;
-
-  padding-left: 10px;
-  background: white;
-
-  transition: 0.2s ease-in-out;
+.auth-card p {
+  margin: 0;
+  color: #536274;
+  line-height: 1.6;
 }
 
-/* Input field */
-.input {
-  margin-left: 10px;
+.auth-card {
+  padding: 28px;
+}
+
+.auth-card-centered {
+  max-width: 520px;
+  margin: 0 auto;
+}
+
+.auth-card-header {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 22px;
+}
+
+.auth-form {
+  display: grid;
+  gap: 14px;
+}
+
+.auth-field {
+  display: grid;
+  gap: 6px;
+}
+
+.auth-field label,
+.auth-check label,
+.auth-hint {
+  color: #5f6f83;
+  font-size: 0.86rem;
+  font-weight: 750;
+}
+
+.auth-field input {
   width: 100%;
-  height: 100%;
-
-  border: none;
+  min-height: 46px;
+  border: 1px solid #cfd9e3;
   border-radius: 10px;
-
-  background: transparent;
+  background: #fbfdff;
+  color: #172033;
+  padding: 10px 12px;
 }
 
-.input:focus {
+.auth-field input:focus {
+  border-color: #0f766e;
+  box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.14);
   outline: none;
 }
 
-.inputForm:focus-within {
-  border: 1.5px solid #2d79f3;
-}
-
-/* Row layout */
-.flex-row {
+.auth-row {
   display: flex;
-  justify-content: space-between;
   align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
   gap: 10px;
 }
 
-/* Links */
-.span {
-  font-size: 14px;
-  margin-left: 5px;
-  color: #2d79f3;
-  font-weight: 500;
-  cursor: pointer;
+.auth-check {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
 }
 
-/* Submit button */
-.button-submit {
-  margin: 20px 0 10px 0;
+.auth-check input {
+  width: 18px;
+  height: 18px;
+  accent-color: #0f766e;
+}
 
-  width: 100%;
-  height: 50px;
+.auth-link {
+  color: #0f766e;
+  font-weight: 800;
+  text-decoration: none;
+}
 
-  background-color: #151717;
-  color: white;
+.auth-link:hover,
+.auth-link:focus-visible {
+  color: #115e59;
+  text-decoration: underline;
+}
 
-  border: none;
+.auth-submit {
+  min-height: 48px;
+  border: 1px solid #0f766e;
   border-radius: 10px;
-
-  font-size: 15px;
-  font-weight: 500;
-
-  cursor: pointer;
-  transition: 0.2s ease-in-out;
+  background: #0f766e;
+  color: #ffffff;
+  padding: 10px 16px;
+  font-weight: 800;
 }
 
-.button-submit:hover {
-  background-color: #252727;
+.auth-submit:hover,
+.auth-submit:focus-visible {
+  background: #115e59;
+  border-color: #115e59;
 }
 
-/* Paragraph text */
-.p {
+.auth-secondary {
+  display: grid;
+  gap: 8px;
+  margin-top: 18px;
+  padding-top: 18px;
+  border-top: 1px solid #e5edf3;
   text-align: center;
-  font-size: 14px;
-  margin: 5px 0;
-  color: black;
+}
+
+.auth-secondary p {
+  color: #66768a;
+}
+
+.account-card {
+  display: grid;
+  gap: 22px;
+}
+
+.account-card-wide {
+  max-width: 780px;
+  margin: 0 auto;
+}
+
+.account-section {
+  display: grid;
+  gap: 14px;
+  padding-top: 20px;
+  border-top: 1px solid #e5edf3;
+}
+
+.account-section-heading {
+  display: grid;
+  gap: 5px;
+}
+
+.account-section-heading h2 {
+  margin: 0;
+  color: #1f2c3f;
+  font-size: 1.14rem;
+  font-weight: 800;
+}
+
+.account-section-heading p {
+  margin: 0;
+  color: #607084;
+}
+
+.account-inline-submit {
+  width: fit-content;
+}
+
+.account-pending-email {
+  padding: 10px 12px;
+  border: 1px solid #eed8af;
+  border-radius: 10px;
+  background: #fff8eb;
+  color: #8a6216 !important;
+  font-weight: 700;
+}
+
+.account-current-value {
+  margin: 0;
+  padding: 10px 12px;
+  border: 1px solid #dbe7e4;
+  border-radius: 10px;
+  background: #f7fbfa;
+  color: #30544b !important;
+  font-weight: 700;
+}
+
+.account-dropdown {
+  border: 1px solid #dbe3ea;
+  border-radius: 14px;
+  background: #fbfcfe;
+  overflow: hidden;
+}
+
+.account-dropdown summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  cursor: pointer;
+  list-style: none;
+  padding: 16px;
+}
+
+.account-dropdown summary::-webkit-details-marker {
+  display: none;
+}
+
+.account-dropdown summary::after {
+  content: "+";
+  color: #0f766e;
+  font-size: 1.15rem;
+  font-weight: 800;
+}
+
+.account-dropdown[open] summary::after {
+  content: "-";
+}
+
+.account-dropdown summary span {
+  display: grid;
+  gap: 4px;
+}
+
+.account-dropdown summary strong {
+  color: #1f2c3f;
+  font-size: 1rem;
+}
+
+.account-dropdown summary small {
+  color: #607084;
+  line-height: 1.45;
+}
+
+.account-dropdown-form {
+  padding: 0 16px 16px;
+}
+
+.auth-error {
+  margin-bottom: 16px;
+}
+
+@media (max-width: 850px) {
+  .auth-card {
+    padding: 22px;
+  }
 }

@@ -1,53 +1,42 @@
-<div class="form">
-
-  <h2>Log in</h2>
-
-  <%= form_for(resource, as: resource_name, url: session_path(resource_name)) do |f| %>
-
-    <div class="flex-column">
-      <label>Email</label>
+<main class="auth-page">
+  <section class="auth-card auth-card-centered">
+    <div class="auth-card-header">
+      <p class="auth-kicker">Log in</p>
+      <h1>Continue planning</h1>
+      <p>Use the email and password attached to your Memphis Travel Assistant account.</p>
     </div>
 
-    <div class="inputForm">
-      <%= f.email_field :email,
-            autofocus: true,
-            autocomplete: "email",
-            placeholder: "Enter your Email",
-            class: "input" %>
-    </div>
-
-    <div class="flex-column">
-      <label>Password</label>
-    </div>
-
-    <div class="inputForm">
-      <%= f.password_field :password,
-            autocomplete: "current-password",
-            placeholder: "Enter your Password",
-            class: "input" %>
-    </div>
-
-    <% if devise_mapping.rememberable? %>
-      <div class="flex-row">
-        <div>
-          <%= f.check_box :remember_me %>
-          <label>Remember me</label>
-        </div>
+    <%= form_for(resource, as: resource_name, url: session_path(resource_name), html: { class: "auth-form" }) do |f| %>
+      <div class="auth-field">
+        <%= f.label :email %>
+        <%= f.email_field :email,
+              autofocus: true,
+              autocomplete: "email",
+              placeholder: "you@example.com" %>
       </div>
+
+      <div class="auth-field">
+        <%= f.label :password %>
+        <%= f.password_field :password,
+              autocomplete: "current-password",
+              placeholder: "Enter your password" %>
+      </div>
+
+      <div class="auth-row auth-row-left">
+        <% if devise_mapping.rememberable? %>
+          <label class="auth-check">
+            <%= f.check_box :remember_me %>
+            <span>Remember me</span>
+          </label>
+        <% end %>
+      </div>
+
+      <%= f.submit "Log in", class: "auth-submit" %>
     <% end %>
 
-    <div class="actions">
-      <%= f.submit "Log in", class: "button-submit" %>
+    <div class="auth-secondary">
+      <p>New here? <%= link_to "Create an account", new_user_registration_path, class: "auth-link" %></p>
+      <p><%= link_to "Keep browsing as a guest", dashboard_path, class: "auth-link" %></p>
     </div>
-
-  <% end %>
-
-  <p>
-    <%= link_to "Sign up", new_user_registration_path %>
-  </p>
-
-  <p>
-    <%= link_to "Try MTA without logging in", dashboard_path %>
-  </p>
-
-</div>
+  </section>
+</main>

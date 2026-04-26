@@ -1,5 +1,6 @@
 <div class="maps-page container">
 	<% today = Time.zone.today.iso8601 %>
+	<% default_origin = user_signed_in? ? current_user.default_home_address : User::DEFAULT_HOME_ADDRESS %>
 	<div class="maps-header">
 		<div class="maps-header-copy">
 			<p class="maps-kicker">Maps</p>
@@ -26,7 +27,7 @@
 			</div>
 
 			<div class="maps-toolbar" aria-label="Directions">
-				<input id="origin" placeholder="Start location" aria-label="Start location">
+				<input id="origin" placeholder="Start location" aria-label="Start location" value="<%= default_origin %>">
 				<input id="destination" placeholder="Destination" aria-label="Destination">
 				<select id="travelMode" aria-label="Mode of transport">
 					<option value="DRIVING">Driving</option>

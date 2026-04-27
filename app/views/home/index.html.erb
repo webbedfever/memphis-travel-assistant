@@ -1,35 +1,25 @@
 <main class="home-page">
   <section class="home-hero">
-    <div class="home-hero-copy">
+    <div class="home-hero-copy" style="background-image: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url('<%= asset_path('memphis_background.jpg') %>'); background-size: cover; background-position: center;">
       <p class="home-eyebrow">Memphis Travel Assistant</p>
       <h1>Plan a better Memphis day.</h1>
-      <p class="home-lede">
-        Find nearby places, check conditions, map your route, and keep the best stops in one planner.
-      </p>
+      <p class="home-lede">Find nearby places, check conditions, map your route, and keep the best stops in one planner.</p>
+      <a href="/maps" class="home-cta">Explore Memphis</a>
     </div>
+  </section>
 
-    <div class="home-trip-panel" aria-label="Planning overview">
-      <div class="home-panel-heading">
-        <span>How it helps</span>
-        <strong>Your trip, organized</strong>
-      </div>
-
-      <div class="home-overview-list">
-        <div class="home-overview-item">
-          <span>1</span>
-          <strong>Discover Memphis options nearby.</strong>
-        </div>
-
-        <div class="home-overview-item">
-          <span>2</span>
-          <strong>Check timing, weather, hours, and routes.</strong>
-        </div>
-
-        <div class="home-overview-item">
-          <span>3</span>
-          <strong>Keep the places you like in one plan.</strong>
-        </div>
-      </div>
+  <section class="home-features">
+    <div class="home-overview-item">
+      <span>1</span>
+      <strong>Discover Memphis options nearby.</strong>
+    </div>
+    <div class="home-overview-item">
+      <span>2</span>
+      <strong>Check timing, weather, hours, and routes.</strong>
+    </div>
+    <div class="home-overview-item">
+      <span>3</span>
+      <strong>Keep the places you like in one plan.</strong>
     </div>
   </section>
 </main>

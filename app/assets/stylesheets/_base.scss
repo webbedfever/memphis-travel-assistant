@@ -82,11 +82,110 @@ body {
   margin-left: 14px;
 }
 
-.app-navbar .btn-dark {
-  border-color: #172033;
-  border-radius: 6px;
-  background: #172033;
-  font-weight: 750;
+.account-menu {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.account-menu form {
+  margin: 0;
+}
+
+.account-summary {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  padding: 8px 10px;
+  border: 1px solid #d7e2ea;
+  border-radius: 999px;
+  background: #fbfcfe;
+  text-decoration: none;
+}
+
+.account-summary:hover,
+.account-summary:focus-visible {
+  border-color: #0f766e;
+  background: #eef7f6;
+  outline: none;
+}
+
+.account-avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  width: 34px;
+  height: 34px;
+  border-radius: 999px;
+  background: #0f766e;
+  color: #ffffff;
+  font-weight: 800;
+}
+
+.account-copy {
+  display: grid;
+  min-width: 0;
+  line-height: 1.2;
+}
+
+.account-copy strong {
+  max-width: 190px;
+  color: #172033;
+  font-size: 0.9rem;
+  font-weight: 800;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.account-copy small {
+  max-width: 190px;
+  color: #66768a;
+  font-size: 0.76rem;
+  font-weight: 650;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.account-sign-out,
+.account-login-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 40px;
+  border-radius: 999px;
+  padding: 9px 14px;
+  font-weight: 800;
+  line-height: 1;
+  text-decoration: none;
+}
+
+.account-login-link {
+  border: 1px solid #0f766e;
+  background: #0f766e;
+  color: #ffffff;
+}
+
+.account-login-link:hover,
+.account-login-link:focus-visible {
+  background: #115e59;
+  border-color: #115e59;
+  color: #ffffff;
+}
+
+.account-sign-out {
+  border: 1px solid #d7e2ea;
+  background: #ffffff;
+  color: #4d5d70;
+}
+
+.account-sign-out:hover,
+.account-sign-out:focus-visible {
+  border-color: #b4232b;
+  color: #b4232b;
 }
 
 @media (max-width: 991.98px) {
@@ -105,5 +204,29 @@ body {
   .navbar-account {
     margin-top: 10px;
     margin-left: 0;
+  }
+
+  .account-menu,
+  .account-summary {
+    align-items: stretch;
+    width: 100%;
+  }
+
+  .account-menu {
+    flex-direction: column;
+  }
+
+  .account-summary {
+    border-radius: 12px;
+  }
+
+  .account-copy strong,
+  .account-copy small {
+    max-width: none;
+  }
+
+  .account-sign-out,
+  .account-login-link {
+    width: 100%;
   }
 }

@@ -1,14 +1,265 @@
-<h1>Dashboard</h1>
+<div class="dashboard-page container">
+	<% weather_error = @weather[:error].present? %>
+	<% weather_suggestions = dashboard_weather_suggestions(@current_weather) %>
 
-<p><%= @message %></p>
+	<section class="dashboard-hero">
+		<div class="dashboard-hero-copy">
+			<p class="dashboard-kicker">Dashboard</p>
+			<h1><%= user_signed_in? ? "Your trip command center" : "Plan a Memphis day that actually feels connected" %></h1>
+			<p class="dashboard-lede">
+				<%= user_signed_in? ? "Use Maps for discovery, Planner for editing, and this dashboard for the final read on what is next." : "Browse the app like a local assistant: Maps for exploring, Weather for prep, and a Planner that turns saved ideas into a real day once you sign in." %>
+			</p>
 
-<% if user_signed_in? %>
-  <%= button_to "Sign Out", destroy_user_session_path, method: :delete %>
-<% end %>
+			<div class="dashboard-actions">
+				<%= link_to "Open Maps", maps_path, class: "dashboard-primary-action" %>
+				<%= link_to "Open Planner", planner_path, class: "dashboard-secondary-action" %>
+				<%= link_to "Check Weather", weather_path, class: "dashboard-secondary-action" %>
+			</div>
+		</div>
 
-<p>
-  <% unless user_signed_in? %>
-    <%= link_to "Sign in", new_user_session_path %> |
-    <%= link_to "Sign up", new_user_registration_path %>
-  <% end %>
-</p>
+		<div class="dashboard-hero-panel">
+			<% if user_signed_in? %>
+				<p class="dashboard-hero-label">Next stop</p>
+				<strong><%= @next_item.present? ? @next_item.title : "Start building your day" %></strong>
+				<p><%= @next_item.present? ? dashboard_item_time(@next_item) : "Nothing is scheduled yet." %></p>
+				<div class="dashboard-hero-meta">
+					<span><%= @dashboard_stats[:saved] %> saved</span>
+					<span><%= @dashboard_stats[:reminders] %> reminders</span>
+					<span><%= weather_error ? "Weather unavailable" : dashboard_condition_label(@current_weather[:condition_text]) %></span>
+				</div>
+			<% else %>
+				<p class="dashboard-hero-label">Guest mode</p>
+				<strong>Explore first. Sign in to keep the plan.</strong>
+				<p>You can browse Maps and Weather as a guest. Sign in when you want saved stops, planner edits, reminders, and this dashboard summary to stay with you.</p>
+			<% end %>
+		</div>
+	</section>
+
+	<% if user_signed_in? %>
+		<section class="dashboard-overview">
+			<div class="dashboard-stat-card">
+				<span>Saved stops</span>
+				<strong><%= @dashboard_stats[:saved] %></strong>
+				<p><%= @dashboard_stats[:saved].positive? ? "Everything you have pulled into the trip builder." : "No saved stops yet. Start with Maps." %></p>
+				<% if @dashboard_stats[:saved].zero? %>
+					<%= link_to "Open Maps", maps_path, class: "dashboard-card-link" %>
+				<% end %>
+			</div>
+			<div class="dashboard-stat-card">
+				<span>Next stop</span>
+				<strong><%= @next_item.present? ? @next_item.title : "None" %></strong>
+				<p><%= @next_item.present? ? dashboard_item_time(@next_item) : "Save a stop, then update its time in Planner." %></p>
+				<%= link_to "Open Planner", planner_path, class: "dashboard-card-link" %>
+			</div>
+			<div class="dashboard-stat-card">
+				<span>Today’s weather</span>
+				<strong><%= weather_error ? "N/A" : dashboard_condition_label(@current_weather[:condition_text]) %></strong>
+				<p><%= weather_error ? "Weather is unavailable, but your planner still works." : weather_suggestions.first %></p>
+			</div>
+			<div class="dashboard-stat-card">
+				<span>Reminders</span>
+				<strong><%= @dashboard_stats[:reminders] %></strong>
+				<p><%= @dashboard_stats[:reminders].positive? ? "You have notifications queued." : "No reminders set. Add one from Planner controls." %></p>
+				<%= link_to "Set reminders", planner_path, class: "dashboard-card-link" %>
+			</div>
+		</section>
+	<% end %>
+
+	<div class="dashboard-grid">
+		<section class="dashboard-panel dashboard-weather-panel">
+			<div class="dashboard-panel-heading">
+				<div>
+					<p class="dashboard-panel-kicker">Memphis Weather</p>
+					<h2>Plan around today’s conditions</h2>
+				</div>
+				<%= link_to "Full forecast", weather_path, class: "dashboard-panel-link" %>
+			</div>
+
+			<% if weather_error %>
+				<div class="dashboard-empty-state">
+					<strong>Weather is temporarily unavailable.</strong>
+					<p>Your saved stops and planner still work. Try the weather page again shortly for the latest Memphis forecast.</p>
+					<%= link_to "Retry forecast", weather_path, class: "dashboard-empty-link" %>
+				</div>
+			<% else %>
+				<div class="dashboard-weather-current">
+					<div>
+						<p class="dashboard-weather-label"><%= dashboard_condition_label(@current_weather[:condition_text]) %></p>
+						<strong><%= dashboard_temperature(@current_weather[:temperature]) %></strong>
+						<p>Feels like <%= dashboard_temperature(@current_weather[:feels_like]) %></p>
+					</div>
+
+					<div class="dashboard-weather-badges">
+						<span><%= @current_weather[:is_daytime] ? "Daytime" : "Nighttime" %></span>
+						<span><%= @current_weather[:precipitation_probability].to_i %>% precip</span>
+						<span>UV <%= @current_weather[:uv_index].presence || "N/A" %></span>
+					</div>
+				</div>
+
+				<div class="dashboard-suggestion-list">
+					<% weather_suggestions.each do |suggestion| %>
+						<div class="dashboard-suggestion-card">
+							<strong><%= suggestion %></strong>
+						</div>
+					<% end %>
+				</div>
+			<% end %>
+		</section>
+
+		<% if user_signed_in? %>
+			<section class="dashboard-panel">
+				<div class="dashboard-panel-heading">
+					<div>
+						<p class="dashboard-panel-kicker">Today’s Itinerary</p>
+						<h2>What is on deck</h2>
+					</div>
+					<%= link_to "Open planner", planner_path, class: "dashboard-panel-link" %>
+				</div>
+
+				<% if @today_items.any? %>
+					<div class="dashboard-list">
+						<% @today_items.first(3).each do |item| %>
+							<article class="dashboard-list-item">
+								<div>
+									<span class="dashboard-item-type"><%= item.item_type.to_s.tr("_", " ").titleize %></span>
+									<strong><%= item.title %></strong>
+									<% if dashboard_item_meta(item).present? %>
+										<p><%= dashboard_item_meta(item) %></p>
+									<% end %>
+								</div>
+								<span class="dashboard-item-time"><%= item.start_time.strftime("%-I:%M %p") %></span>
+							</article>
+						<% end %>
+					</div>
+				<% else %>
+					<div class="dashboard-empty-state">
+						<strong>Nothing is timed for today yet.</strong>
+						<p>Save a place or event from Maps to start shaping today’s flow.</p>
+						<%= link_to "Open Maps", maps_path, class: "dashboard-empty-link" %>
+					</div>
+				<% end %>
+			</section>
+
+			<section class="dashboard-panel">
+				<div class="dashboard-panel-heading">
+					<div>
+						<p class="dashboard-panel-kicker">Planning Gaps</p>
+						<h2>What still needs attention</h2>
+					</div>
+				</div>
+
+				<div class="dashboard-checklist">
+					<div class="dashboard-check">
+						<strong><%= @planning_gaps[:flexible] %> flexible stops</strong>
+						<p><%= @planning_gaps[:flexible].positive? ? "Drag these into order in the planner so the day flows better." : "No loose stops waiting to be arranged." %></p>
+					</div>
+					<div class="dashboard-check">
+						<strong><%= @planning_gaps[:reminderless] %> timed stops without reminders</strong>
+						<p><%= @planning_gaps[:reminderless].positive? ? "Use the Planner notification controls on each card." : "Your timed stops are already covered." %></p>
+					</div>
+					<div class="dashboard-check">
+						<strong><%= @planning_gaps[:today_open] ? "Today is open" : "Today has a plan" %></strong>
+						<p><%= @planning_gaps[:today_open] ? "Great for a spontaneous day, but worth filling if you want structure." : "You already have momentum for today." %></p>
+					</div>
+					<div class="dashboard-check">
+						<strong><%= @planning_gaps[:weather_prep] %> weather prep notes</strong>
+						<p><%= @planning_gaps[:weather_prep].positive? ? "Nice: weather prep is already represented in your plan." : "The weather page can add prep suggestions straight into your planner." %></p>
+					</div>
+				</div>
+			</section>
+
+			<section class="dashboard-panel">
+				<div class="dashboard-panel-heading">
+					<div>
+						<p class="dashboard-panel-kicker">Coming Up</p>
+						<h2>Upcoming stops</h2>
+					</div>
+				</div>
+
+				<% if @upcoming_items.any? %>
+					<div class="dashboard-list">
+						<% @upcoming_items.each do |item| %>
+							<article class="dashboard-list-item">
+								<div>
+									<span class="dashboard-item-type"><%= item.item_type.to_s.tr("_", " ").titleize %></span>
+									<strong><%= item.title %></strong>
+									<% if dashboard_item_meta(item).present? %>
+										<p><%= dashboard_item_meta(item) %></p>
+									<% end %>
+								</div>
+								<span class="dashboard-item-time"><%= item.start_time.strftime("%b %-d") %></span>
+							</article>
+						<% end %>
+					</div>
+				<% else %>
+					<div class="dashboard-empty-state">
+						<strong>You do not have an upcoming queue yet.</strong>
+						<p>Maps is the fastest way to start adding events and places into the planner.</p>
+						<%= link_to "Find stops", maps_path, class: "dashboard-empty-link" %>
+					</div>
+				<% end %>
+			</section>
+		<% else %>
+			<section class="dashboard-panel">
+				<div class="dashboard-panel-heading">
+					<div>
+						<p class="dashboard-panel-kicker">What You Can Do</p>
+						<h2>Use the app like a trip builder</h2>
+					</div>
+				</div>
+
+				<div class="dashboard-checklist">
+					<div class="dashboard-check">
+						<strong>Explore the map visually</strong>
+						<p>Compare local events and nearby places without leaving the map.</p>
+					</div>
+					<div class="dashboard-check">
+						<strong>Filter by date and time</strong>
+						<p>Jump straight to today, weekend plans, next week, or next month.</p>
+					</div>
+					<div class="dashboard-check">
+						<strong>Prep around the weather</strong>
+						<p>See Memphis conditions and get quick suggestions for what to bring.</p>
+					</div>
+					<div class="dashboard-check">
+						<strong>Unlock saved trips</strong>
+						<p>Signing in keeps saved stops, planner edits, completed items, and reminders attached to your account.</p>
+					</div>
+				</div>
+			</section>
+
+			<section class="dashboard-panel">
+				<div class="dashboard-panel-heading">
+					<div>
+						<p class="dashboard-panel-kicker">Quick Start</p>
+						<h2>Best first moves</h2>
+					</div>
+				</div>
+
+				<div class="dashboard-list">
+					<article class="dashboard-list-item">
+						<div>
+							<span class="dashboard-item-type">Maps</span>
+							<strong>Find a place or event</strong>
+							<p>Use the Memphis map to explore neighborhoods and live results.</p>
+						</div>
+					</article>
+					<article class="dashboard-list-item">
+						<div>
+							<span class="dashboard-item-type">Weather</span>
+							<strong>Check what the day needs</strong>
+							<p>Look at current conditions before committing to outdoor plans.</p>
+						</div>
+					</article>
+					<article class="dashboard-list-item">
+						<div>
+							<span class="dashboard-item-type">Planner</span>
+							<strong>Save your trip flow</strong>
+							<p>Create an account when you want a timeline, reminders, and flexible stops.</p>
+						</div>
+					</article>
+				</div>
+			</section>
+		<% end %>
+	</div>
+</div>

@@ -39,7 +39,8 @@ export function plannerItemKey(item) {
 		item.title,
 		item.location_name,
 		item.latitude,
-		item.longitude
+		item.longitude,
+		normalizedDate(item.start_time)
 	].join(":");
 }
 

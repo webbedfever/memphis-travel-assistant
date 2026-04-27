@@ -1,27 +1,29 @@
 import {
 	bindDirectionAddressButtons,
-	clearMarkers,
 	escapeHtml,
 	normalizeRange,
+	plannerDateTime,
+	renderStateCard,
 	sanitizeUrl,
 	timeToMinutes
 } from "maps/helpers";
 import { bindPlannerButtons, syncPlannerButtons } from "maps/planner_state";
+import ResultsController from "maps/results_controller";
 
-export default class PlacesController {
+export default class PlacesController extends ResultsController {
 	constructor(mapController) {
-		this.mapController = mapController;
-		this.markers = [];
-		this.infoWindow = new google.maps.InfoWindow();
+		super(mapController, { countId: "placeCount" });
 	}
 
 	async load() {
-		clearMarkers(this.markers);
-		this.markers = [];
+		this.resetMarkers();
 
 		const container = document.getElementById("placeList");
 		this.updateCountLabel("Loading...");
-		container.innerHTML = "<p>Loading places...</p>";
+		container.innerHTML = renderStateCard(
+			"Loading places",
+			"Finding restaurants, attractions, and local spots near the map center."
+		);
 
 		const bounds = this.mapController.getBounds();
 		const center = this.mapController.getCenter();
@@ -32,6 +34,7 @@ export default class PlacesController {
 		const radius = google.maps.geometry.spherical.computeDistanceBetween(center, ne);
 		const type = document.getElementById("placeType").value;
 		const date = document.getElementById("startDate").value;
+		const endDate = document.getElementById("endDate").value;
 		const startTime = document.getElementById("startTime").value;
 		const endTime = document.getElementById("endTime").value;
 		const openNowOnly = document.getElementById("openNowButton").getAttribute("aria-pressed") === "true";
@@ -49,28 +52,36 @@ export default class PlacesController {
 
 			const places = this.filterPlaces(await response.json(), {
 				date,
+				endDate,
 				startTime,
 				endTime,
 				openNowOnly
 			});
 
 			this.updateCountLabel(this.countLabel(places.length, "place"));
-			this.renderList(places, type);
+			this.renderList(places, type, { date, endDate, startTime, endTime });
 			this.renderMarkers(places);
 			this.bindPlannerButtons();
 		} catch (error) {
 			this.updateCountLabel("Unavailable");
-			container.innerHTML = "<p>Unable to load places.</p>";
+			container.innerHTML = renderStateCard(
+				"Unable to load places",
+				"We could not reach nearby places right now. Try again in a moment.",
+				{ scope: "places", label: "Retry places" }
+			);
 			console.error(error);
 		}
 	}
 
-	renderList(places, type) {
+	renderList(places, type, filters = {}) {
 		const container = document.getElementById("placeList");
 
 		if (places.length === 0) {
 			this.updateCountLabel(this.countLabel(0, "place"));
-			container.innerHTML = "<p>No places found</p>";
+			container.innerHTML = renderStateCard(
+				"No places found",
+				"Try changing the place type, time filters, or moving the map to a different area."
+			);
 			return;
 		}
 
@@ -84,25 +95,30 @@ export default class PlacesController {
 			const phone = escapeHtml(place.phone || "");
 			const website = sanitizeUrl(place.website);
 			const googleUrl = sanitizeUrl(place.google_url);
-
-			const payload = encodeURIComponent(JSON.stringify({
+			const selectedDate = filters.date || "";
+			const dateOptions = this.dateOptions(filters.date, filters.endDate);
+			const startTime = filters.startTime || "";
+			const endTime = filters.endTime || "";
+			const placePayload = {
 				title: place.name,
 				item_type: "place",
 				location_name: place.name,
 				address: place.address,
 				latitude: place.lat,
 				longitude: place.lng,
-				external_id: place.place_id || `google-place-${place.name}-${place.lat}-${place.lng}`,
 				source: "google_places",
 				category: type || place.category,
 				rating: place.rating,
 				open_now: place.open_now,
-				hours_day: place.hours_day,
-				hours_for_day: place.hours_for_day,
+				weekday_text: place.weekday_text || [],
 				phone: place.phone,
 				website: place.website,
-				google_url: place.google_url
-			}));
+				google_url: place.google_url,
+				place_id: place.place_id
+			};
+			const payload = this.encodedPlannerPayload(placePayload, selectedDate, { startTime, endTime });
+			const encodedPlacePayload = encodeURIComponent(JSON.stringify(placePayload));
+			const dateSelect = this.renderPlaceDateSelect(dateOptions, selectedDate);
 
 			return `
 				<div class="maps-group-card maps-place-card">
@@ -118,18 +134,25 @@ export default class PlacesController {
 							</div>
 							${this.renderPlaceLinks(website, googleUrl)}
 						</div>
-						<button
-							type="button"
-							class="add-to-planner-button planner-inline-action"
-							data-item="${payload}"
-							aria-label="Save ${name} to planner">
-							Save
-						</button>
+						<div class="maps-save-controls">
+							${dateSelect}
+							<button
+								type="button"
+								class="add-to-planner-button planner-inline-action"
+								data-item="${payload}"
+								data-place-payload="${encodedPlacePayload}"
+								data-start-time="${escapeHtml(startTime)}"
+								data-end-time="${escapeHtml(endTime)}"
+								aria-label="Save ${name} to planner">
+								Save
+							</button>
+						</div>
 					</div>
 				</div>
 			`;
 		}).join("");
 
+		this.bindPlaceDateSelects(container);
 		syncPlannerButtons(container);
 		bindDirectionAddressButtons(container);
 	}
@@ -149,13 +172,30 @@ export default class PlacesController {
 			});
 
 			marker.addListener("click", () => {
+				const address = place.address || "";
+				const category = escapeHtml(this.formatCategory(place.category));
+				const rating = escapeHtml(place.rating || "N/A");
+				const status = escapeHtml(this.formatOpenStatus(place));
+				const hours = escapeHtml(this.formatHours(place));
+				const links = this.renderMarkerLinks(
+					sanitizeUrl(place.website),
+					sanitizeUrl(place.google_url)
+				);
+
 				this.infoWindow.setContent(`
-					<div style="max-width:200px">
-						<strong>${escapeHtml(place.name || "Unnamed place")}</strong><br>
-						${escapeHtml(place.address || "")}<br>
-						Rating: ${escapeHtml(place.rating || "N/A")}<br>
-						${escapeHtml(this.formatOpenStatus(place))}<br>
-						${escapeHtml(this.formatHours(place))}
+					<div class="maps-marker-window">
+						<div class="maps-marker-heading">
+							<strong>${escapeHtml(place.name || "Unnamed place")}</strong>
+							<span>${status}</span>
+						</div>
+						${address ? `<p class="maps-marker-address">${escapeHtml(address)}</p>` : ""}
+						<div class="maps-marker-meta">
+							<span>${category}</span>
+							<span>Rating: ${rating}</span>
+							<span>${hours}</span>
+						</div>
+						${this.renderRouteActions(address, { includeOrigin: true })}
+						${links ? `<div class="maps-marker-links">${links}</div>` : ""}
 					</div>
 				`);
 
@@ -246,36 +286,116 @@ export default class PlacesController {
 		return "Hours unavailable";
 	}
 
-	renderPlaceLinks(website, googleUrl) {
-		const links = [];
-		if (website) links.push(`<a href="${website}" target="_blank" rel="noopener">Website</a>`);
-		if (googleUrl) links.push(`<a href="${googleUrl}" target="_blank" rel="noopener">Google listing</a>`);
+	formatCategory(category) {
+		if (!category) return "Place";
 
-		if (links.length === 0) return "";
-
-		return `<div class="maps-result-links">${links.join("")}</div>`;
+		return String(category)
+			.split("_")
+			.map(word => word.charAt(0).toUpperCase() + word.slice(1))
+			.join(" ");
 	}
 
-	renderAddressButton(address) {
-		const safeAddress = escapeHtml(address);
+	renderPlaceLinks(website, googleUrl) {
+		return this.renderExternalLinks([
+			{ label: "Website", url: website },
+			{ label: "Google listing", url: googleUrl }
+		], "maps-result-links");
+	}
+
+	renderMarkerLinks(website, googleUrl) {
+		return this.renderExternalLinks([
+			{ label: "Website", url: website },
+			{ label: "Google listing", url: googleUrl }
+		]);
+	}
+
+	dateOptions(startDate, endDate) {
+		if (!startDate) return [];
+
+		const start = new Date(`${startDate}T00:00:00`);
+		const end = new Date(`${endDate || startDate}T00:00:00`);
+		if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime()) || end < start) return [startDate];
+
+		const options = [];
+		const current = new Date(start);
+		while (current <= end && options.length < 31) {
+			options.push(current.toLocaleDateString("en-CA"));
+			current.setDate(current.getDate() + 1);
+		}
+
+		return options;
+	}
+
+	renderPlaceDateSelect(dateOptions, selectedDate) {
+		if (dateOptions.length <= 1) return "";
+
+		const options = dateOptions.map(date => {
+			const label = new Date(`${date}T00:00:00`).toLocaleDateString([], {
+				weekday: "short",
+				month: "short",
+				day: "numeric"
+			});
+			return `<option value="${escapeHtml(date)}" ${date === selectedDate ? "selected" : ""}>${escapeHtml(label)}</option>`;
+		}).join("");
 
 		return `
-			<button
-				type="button"
-				class="maps-address-button"
-				data-address="${safeAddress}"
-				title="Use as directions destination">
-				${safeAddress}
-			</button>
+			<label class="maps-date-choice">
+				<span>Save for</span>
+				<select aria-label="Choose date for saved place">${options}</select>
+			</label>
 		`;
 	}
 
-	updateCountLabel(label) {
-		const count = document.getElementById("placeCount");
-		if (count) count.textContent = label;
+	bindPlaceDateSelects(container) {
+		container.querySelectorAll(".maps-date-choice select").forEach(select => {
+			if (select.dataset.dateChoiceBound === "true") return;
+			select.dataset.dateChoiceBound = "true";
+
+			select.addEventListener("change", () => {
+				const button = select.closest(".maps-save-controls")?.querySelector(".add-to-planner-button");
+				if (!button) return;
+
+				const payload = JSON.parse(decodeURIComponent(button.dataset.placePayload));
+				button.dataset.item = this.encodedPlannerPayload(payload, select.value, {
+					startTime: button.dataset.startTime || "",
+					endTime: button.dataset.endTime || ""
+				});
+				button.textContent = "Save";
+				button.disabled = false;
+				delete button.dataset.saved;
+			});
+		});
 	}
 
-	countLabel(total, noun) {
-		return `${total} ${noun}${total === 1 ? "" : "s"} available`;
+	encodedPlannerPayload(placePayload, selectedDate, filters) {
+		const baseExternalId = placePayload.place_id || `google-place-${placePayload.title}-${placePayload.latitude}-${placePayload.longitude}`;
+		const weekdayText = Array.isArray(placePayload.weekday_text) ? placePayload.weekday_text : [];
+		const selectedDay = this.weekdayLabel(selectedDate);
+		const payload = {
+			...placePayload,
+			start_time: selectedDate ? plannerDateTime(selectedDate, filters.startTime) : null,
+			end_time: selectedDate && filters.startTime && filters.endTime ? plannerDateTime(selectedDate, filters.endTime) : null,
+			external_id: selectedDate ? `${baseExternalId}-${selectedDate}` : baseExternalId,
+			hours_day: selectedDay,
+			hours_for_day: this.hoursForDate(weekdayText, selectedDate)
+		};
+
+		delete payload.weekday_text;
+		delete payload.place_id;
+
+		return encodeURIComponent(JSON.stringify(payload));
+	}
+
+	weekdayLabel(date) {
+		if (!date) return "";
+
+		return new Date(`${date}T00:00:00`).toLocaleDateString([], { weekday: "long" });
+	}
+
+	hoursForDate(weekdayText, date) {
+		if (!date || !Array.isArray(weekdayText) || weekdayText.length === 0) return "";
+
+		const day = new Date(`${date}T00:00:00`).getDay();
+		return weekdayText[(day + 6) % 7] || "";
 	}
 }

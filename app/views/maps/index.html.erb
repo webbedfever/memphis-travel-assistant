@@ -1,4 +1,6 @@
 <div class="maps-page container">
+	<% today = Time.zone.today.iso8601 %>
+	<% default_origin = user_signed_in? ? current_user.default_home_address : User::DEFAULT_HOME_ADDRESS %>
 	<div class="maps-header">
 		<div class="maps-header-copy">
 			<p class="maps-kicker">Maps</p>
@@ -21,10 +23,11 @@
 					<p class="maps-section-kicker">Route Builder</p>
 					<h2>Get directions across Memphis</h2>
 				</div>
+				<span class="maps-section-note">Nearby results update when the map moves</span>
 			</div>
 
 			<div class="maps-toolbar" aria-label="Directions">
-				<input id="origin" placeholder="Start location" aria-label="Start location">
+				<input id="origin" placeholder="Start location" aria-label="Start location" value="<%= default_origin %>">
 				<input id="destination" placeholder="Destination" aria-label="Destination">
 				<select id="travelMode" aria-label="Mode of transport">
 					<option value="DRIVING">Driving</option>
@@ -32,7 +35,13 @@
 					<option value="BICYCLING">Bicycling</option>
 					<option value="TRANSIT">Transit</option>
 				</select>
+				<button type="button" class="maps-secondary-button" onclick="swapDirections()">Swap</button>
+				<button type="button" class="maps-secondary-button" onclick="useCurrentLocation()">Use My Location</button>
 				<button class="maps-action-button" onclick="getDirections()">Get Directions</button>
+			</div>
+
+			<div id="routeSummary" class="maps-route-summary" aria-live="polite">
+				<p class="maps-route-placeholder">Choose a start point and destination to see route details here.</p>
 			</div>
 		</section>
 
@@ -50,9 +59,16 @@
 			</div>
 		</div>
 
+		<div class="maps-filter-shortcuts" role="group" aria-label="Quick date ranges">
+			<button type="button" class="maps-filter-chip" data-date-preset="today">Today</button>
+			<button type="button" class="maps-filter-chip" data-date-preset="nextWeek">Following Week</button>
+			<button type="button" class="maps-filter-chip" data-date-preset="weekend">Weekend</button>
+			<button type="button" class="maps-filter-chip" data-date-preset="nextMonth">Following Month</button>
+		</div>
+
 		<div class="maps-filters">
-			<input type="date" id="startDate" aria-label="Start date">
-			<input type="date" id="endDate" aria-label="End date">
+			<input type="date" id="startDate" value="<%= today %>" min="<%= today %>" aria-label="Start date">
+			<input type="date" id="endDate" value="<%= today %>" min="<%= today %>" aria-label="End date">
 			<input type="time" id="startTime" aria-label="Start time">
 			<input type="time" id="endTime" aria-label="End time">
 
@@ -88,6 +104,8 @@
 			<button class="maps-action-button" onclick="applyFilters()">Apply Filters</button>
 			<button type="button" class="maps-reset-button" onclick="resetFilters()">Reset Filters</button>
 		</div>
+
+		<p id="filterStatus" class="maps-filter-status" aria-live="polite"></p>
 	</section>
 
 	<div id="results" class="maps-results">
@@ -96,7 +114,12 @@
 				<h2>Events</h2>
 				<span id="eventCount" class="maps-panel-count">0 available</span>
 			</div>
-			<div id="eventList" class="maps-panel-list"></div>
+			<div id="eventList" class="maps-panel-list">
+				<div class="maps-state-card">
+					<strong>Loading events</strong>
+					<p>Checking what is happening around Memphis right now.</p>
+				</div>
+			</div>
 		</section>
 
 		<section class="maps-panel">
@@ -104,7 +127,12 @@
 				<h2>Places</h2>
 				<span id="placeCount" class="maps-panel-count">0 available</span>
 			</div>
-			<div id="placeList" class="maps-panel-list"></div>
+			<div id="placeList" class="maps-panel-list">
+				<div class="maps-state-card">
+					<strong>Loading places</strong>
+					<p>Finding restaurants, attractions, and local spots near the map center.</p>
+				</div>
+			</div>
 		</section>
 	</div>
 </div>

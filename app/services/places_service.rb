@@ -4,35 +4,24 @@ class PlacesService
 	BASE_URL = "https://maps.googleapis.com/maps/api/place/nearbysearch/json"
 	DETAILS_URL = "https://maps.googleapis.com/maps/api/place/details/json"
 
-	TYPES = ["restaurant", "cafe", "bar", "tourist_attraction", "museum", "park", "store"]
-	RESULT_LIMIT = 50
-	DETAILS_BATCH_SIZE = 10
+	RESULT_LIMIT = 40
+	DETAILS_BATCH_SIZE = 8
 	REQUEST_TIMEOUT = 5
 
 	def self.nearby_open_places(lat = 35.1495, lng = -90.0490, radius = 5000, type = nil, date = nil, open_now_only = false)
 		target_date = parse_date(date)
 
-		types_to_search = type.present? ? [type] : TYPES
+		query = {
+			location: "#{lat},#{lng}",
+			radius: radius,
+			key: ENV['GOOGLE_API_KEY']
+		}
+		query[:type] = type if type.present?
 
-		nearby_results = concurrent_map(types_to_search) do |t|
-			query = {
-				location: "#{lat},#{lng}",
-				radius: radius,
-				type: t,
-				key: ENV['GOOGLE_API_KEY']
-			}
+		response = google_get(BASE_URL, query)
+		return [] unless response&.success?
 
-			response = google_get(BASE_URL, query)
-			next [] unless response&.success?
-
-			data = response.parsed_response
-			results = data["results"] || []
-
-			results.each { |place| place["_searched_type"] = t }
-			results
-		end
-
-		all_places = nearby_results.flatten
+		all_places = response.parsed_response["results"] || []
 
 		unique = all_places.uniq do |place|
 			place["place_id"].presence || [
@@ -42,7 +31,7 @@ class PlacesService
 		end
 
 		filtered_places = open_now_only ? unique.select { |place| place.dig("opening_hours", "open_now") == true } : unique
-		limited_places = type.present? ? filtered_places.first(RESULT_LIMIT) : balanced_places(filtered_places)
+		limited_places = filtered_places.first(RESULT_LIMIT)
 
 		places_with_details = limited_places.each_slice(DETAILS_BATCH_SIZE).flat_map do |places|
 			concurrent_map(places) do |place|
@@ -61,6 +50,7 @@ class PlacesService
 				open_now: opening_hours["open_now"],
 				hours_for_day: weekday_hours,
 				hours_periods: opening_hours["periods"] || [],
+				weekday_text: opening_hours["weekday_text"] || [],
 				hours_day: target_date.strftime("%A"),
 				rating: place["rating"],
 				address: place["vicinity"],
@@ -68,34 +58,9 @@ class PlacesService
 				website: details["website"],
 				google_url: details["url"],
 				place_id: place["place_id"],
-				category: place["_searched_type"]
+				category: type.presence || place["types"]&.first
 			}
 		end
-	end
-
-	def self.balanced_places(places)
-		grouped = places.group_by { |place| place["_searched_type"] }
-		balanced = []
-		index = 0
-
-		while balanced.length < RESULT_LIMIT
-			added_place = false
-
-			TYPES.each do |place_type|
-				place = grouped[place_type]&.[](index)
-				next if place.blank?
-
-				balanced << place
-				added_place = true
-				break if balanced.length >= RESULT_LIMIT
-			end
-
-			break unless added_place
-
-			index += 1
-		end
-
-		balanced
 	end
 
 	def self.place_details(place_id)

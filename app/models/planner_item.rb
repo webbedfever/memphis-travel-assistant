@@ -5,6 +5,7 @@
 #  id                      :bigint           not null, primary key
 #  address                 :string
 #  category                :string
+#  completed_at            :datetime
 #  description             :text
 #  end_time                :datetime
 #  google_url              :string
@@ -17,6 +18,7 @@
 #  notes                   :text
 #  open_now                :boolean
 #  phone                   :string
+#  position                :integer
 #  rating                  :float
 #  reminder_at             :datetime
 #  reminder_enabled        :boolean          default(FALSE), not null
@@ -48,6 +50,7 @@ class PlannerItem < ApplicationRecord
 
 	validates :title, presence: true
 	validates :item_type, presence: true
+	validates :position, numericality: { only_integer: true, greater_than: 0 }, allow_nil: true
 	validates :reminder_at, presence: true, if: :reminder_enabled?
 	validates :reminder_minutes_before, inclusion: { in: REMINDER_OFFSETS }, allow_nil: true
 	validates :external_id,
@@ -56,13 +59,16 @@ class PlannerItem < ApplicationRecord
 			message: "has already been added to your planner"
 		},
 		allow_blank: true
+	validate :reminder_at_not_in_past, if: :reminder_enabled?
+	validate :reminder_at_before_start_time, if: :reminder_enabled?
 
 	before_validation :clear_reminder_fields, unless: :reminder_enabled?
 	before_validation :derive_reminder_at_from_start_time
+	before_validation :assign_position, on: :create
 	before_save :reset_reminder_sent_at, if: :reminder_schedule_will_change?
 	after_commit :enqueue_reminder, if: :reminder_schedule_changed?
 
-	scope :ordered, -> { order(:start_time, :created_at) }
+	scope :ordered, -> { order(Arel.sql("CASE WHEN start_time IS NULL THEN 1 ELSE 0 END"), :start_time, :position, :created_at) }
 	scope :events, -> { where(item_type: "event") }
 	scope :places, -> { where(item_type: "place") }
 
@@ -89,8 +95,28 @@ class PlannerItem < ApplicationRecord
 		self.reminder_at = start_time - reminder_minutes_before.minutes
 	end
 
+	def assign_position
+		return if position.present?
+
+		self.position = (user&.planner_items&.maximum(:position) || 0) + 1
+	end
+
 	def reset_reminder_sent_at
 		self.reminder_sent_at = nil
+	end
+
+	def reminder_at_not_in_past
+		return if reminder_at.blank?
+		return if reminder_at >= Time.current
+
+		errors.add(:reminder_at, "must be in the future")
+	end
+
+	def reminder_at_before_start_time
+		return if reminder_at.blank? || start_time.blank?
+		return if reminder_at <= start_time
+
+		errors.add(:reminder_at, "must be before the planned start time")
 	end
 
 	def enqueue_reminder

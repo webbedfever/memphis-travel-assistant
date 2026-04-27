@@ -1,46 +1,139 @@
 <div class="planner-page container">
+	<% date_only_flex_item = lambda do |item|
+		item.item_type == "place" &&
+			item.source == "google_places" &&
+			item.start_time.present? &&
+			item.end_time.blank? &&
+			item.start_time.strftime("%H:%M:%S") == "00:00:00"
+	end %>
+	<% total_items = @planner_items.size %>
+	<% scheduled_items = @planner_items.count { |item| item.start_time.present? && !date_only_flex_item.call(item) } %>
+	<% place_items = @planner_items.count { |item| item.item_type == "place" } %>
+	<% event_items = @planner_items.count { |item| item.item_type == "event" } %>
+	<% prep_items = @planner_items.count { |item| item.item_type == "weather_prep" } %>
+	<% next_item = @planner_items.select { |item| item.completed_at.blank? && item.start_time.present? && item.item_type != "weather_prep" && !date_only_flex_item.call(item) }.min_by(&:start_time) %>
+
 	<div class="planner-header">
-		<div>
-			<p class="planner-eyebrow">Memphis Travel Assistant</p>
-			<h1>My Planner</h1>
+		<div class="planner-header-copy">
+			<p class="planner-eyebrow">Trip Builder</p>
+			<h1>Build your Memphis day</h1>
+			<p class="planner-lede">
+				Shape your stops into a simple itinerary, keep reminders nearby, and make sure the day still flows.
+			</p>
 		</div>
-		<span class="planner-total"><%= pluralize(@planner_items.size, "saved item") %></span>
+		<div class="planner-next-stop">
+			<span>Next stop</span>
+			<strong><%= next_item.present? ? next_item.title : "Add your first stop" %></strong>
+			<p><%= next_item&.start_time.present? ? next_item.start_time.strftime("%A at %-I:%M %p") : "Nothing scheduled yet" %></p>
+		</div>
+	</div>
+
+		<div class="planner-overview" data-planner-overview>
+		<div class="planner-total" data-planner-total><%= pluralize(total_items, "saved item") %></div>
+		<div class="planner-stat-card">
+			<span>Timed Stops</span>
+			<strong data-planner-timed><%= scheduled_items %></strong>
+		</div>
+		<div class="planner-stat-card">
+			<span>Places</span>
+			<strong data-planner-places><%= place_items %></strong>
+		</div>
+		<div class="planner-stat-card">
+			<span>Events</span>
+			<strong data-planner-events><%= event_items %></strong>
+		</div>
+		<div class="planner-stat-card">
+			<span>Prep</span>
+			<strong data-planner-prep><%= prep_items %></strong>
+		</div>
 	</div>
 
 	<% if @planner_items.any? %>
-		<div class="planner-timeline">
+		<div class="planner-timeline" data-planner-timeline>
 			<% @planner_items.group_by { |item| item.start_time&.to_date || item.created_at.to_date }.each do |date, items| %>
-				<section class="planner-day">
+				<% timed_items = items.select { |item| item.start_time.present? && !date_only_flex_item.call(item) } %>
+				<% flex_items = items.select { |item| item.start_time.blank? || date_only_flex_item.call(item) } %>
+				<% day_events = items.count { |item| item.item_type == "event" } %>
+				<% day_places = items.count { |item| item.item_type == "place" } %>
+				<% day_prep = items.count { |item| item.item_type == "weather_prep" } %>
+				<% day_start = timed_items.min_by(&:start_time) %>
+				<% day_end = timed_items.select(&:end_time).max_by(&:end_time) || timed_items.max_by(&:start_time) %>
+
+				<section class="planner-day" data-planner-day data-day-label="<%= date.strftime("%A, %B %d, %Y") %>">
 					<div class="planner-day-heading">
-						<h2><%= date.strftime("%A, %B %d, %Y") %></h2>
-						<span><%= pluralize(items.size, "item") %></span>
+						<div class="planner-day-title-block">
+							<p class="planner-day-kicker">Day Plan</p>
+							<h2><%= date.strftime("%A, %B %d, %Y") %></h2>
+							<div class="planner-day-brief">
+								<span><%= pluralize(day_places, "place") %></span>
+								<span><%= pluralize(day_events, "event") %></span>
+								<% if day_prep.positive? %>
+									<span><%= pluralize(day_prep, "prep note") %></span>
+								<% end %>
+								<% if day_start&.start_time.present? %>
+									<span>Starts <%= day_start.start_time.strftime("%-I:%M %p") %></span>
+								<% end %>
+								<% if day_end&.respond_to?(:end_time) && day_end&.end_time.present? %>
+									<span>Ends <%= day_end.end_time.strftime("%-I:%M %p") %></span>
+								<% elsif day_end&.start_time.present? %>
+									<span>Latest <%= day_end.start_time.strftime("%-I:%M %p") %></span>
+								<% end %>
+							</div>
+						</div>
+						<div class="planner-day-actions">
+							<span><%= pluralize(items.size, "stop") %></span>
+							<button type="button" class="planner-clear-day" data-clear-day>Clear day</button>
+						</div>
 					</div>
 
 					<div class="planner-day-list">
-						<% items.each do |item| %>
+						<% timed_items.each do |item| %>
 							<% ticketmaster_time_known = item.external_id.to_s.match?(/T\d{2}:\d{2}/) || item.start_time.blank? || !item.start_time.strftime("%H:%M:%S").eql?("00:00:00") %>
 							<% time_unknown = item.source == "ticketmaster" && !ticketmaster_time_known %>
 							<% website_url = safe_external_url(item.website) %>
 							<% google_url = safe_external_url(item.google_url) %>
 							<% ticketmaster_url = safe_external_url(item.ticketmaster_url) %>
 							<% reminder_location = item.location_name.presence || item.address %>
+							<% closed_for_day = item.item_type == "place" && item.hours_for_day.to_s.downcase.include?("closed") %>
+							<% completed = item.completed_at.present? %>
 
 							<article
-								class="planner-item"
+								class="planner-item <%= "is-complete" if completed %>"
+								data-planner-item-id="<%= item.id %>"
+								data-item-type="<%= item.item_type %>"
+								data-has-start-time="<%= item.start_time.present? %>"
+								data-start-time="<%= item.start_time&.iso8601 %>"
+								data-item-title="<%= item.title %>"
+								data-position="<%= item.position %>"
+								data-completed-at="<%= item.completed_at&.iso8601 %>"
+								data-hours-for-day="<%= item.hours_for_day %>"
+								data-hours-day="<%= item.hours_day %>"
 								data-reminder-item
 								data-reminder-at="<%= item.reminder_at&.iso8601 %>"
 								data-reminder-title="<%= item.title %>"
 								data-reminder-location="<%= reminder_location %>">
 								<div class="planner-item-main">
+									<div class="planner-item-rail">
+										<span class="planner-item-time" data-planner-time>
+											<% if item.start_time.present? %>
+												<%= time_unknown ? "TBA" : item.start_time.strftime("%-I:%M") %>
+												<small><%= time_unknown ? "" : item.start_time.strftime("%p") %></small>
+											<% else %>
+												Flex
+											<% end %>
+										</span>
+										<span class="planner-item-line" aria-hidden="true"></span>
+									</div>
+
 									<div class="planner-item-copy">
 										<div class="planner-item-title-row">
-											<span class="planner-type-badge"><%= item.item_type.capitalize %></span>
+											<span class="planner-type-badge"><%= item.item_type.to_s.tr("_", " ").titleize %></span>
 											<h3><%= item.title %></h3>
 										</div>
 
 										<div class="planner-quick-meta">
 											<% if item.start_time.present? %>
-												<span>
+												<span data-time-meta>
 													<%= time_unknown ? "Time TBA" : item.start_time.strftime("%I:%M %p") %>
 													<% if item.end_time.present? && !time_unknown %>
 														- <%= item.end_time.strftime("%I:%M %p") %>
@@ -51,16 +144,74 @@
 											<% if item.location_name.present? %>
 												<span><%= item.location_name %></span>
 											<% end %>
+
+											<% if item.category.present? %>
+												<span><%= item.category %></span>
+											<% end %>
+
+											<% if closed_for_day %>
+												<span class="planner-closed-pill">Closed for the day</span>
+											<% end %>
+											<% if completed %>
+												<span class="planner-complete-pill">Done</span>
+											<% end %>
 										</div>
+
+										<% if item.notes.present? %>
+											<p class="planner-item-note"><%= item.notes %></p>
+										<% end %>
 									</div>
 
-									<button
-										type="button"
-										class="delete-planner-item"
-										data-planner-item-id="<%= item.id %>">
-										Remove
-									</button>
+									<div class="planner-card-actions">
+										<button
+											type="button"
+											class="complete-planner-item"
+											data-complete-planner-item
+											data-planner-item-id="<%= item.id %>"
+											<%= "disabled" if completed %>>
+											<%= completed ? "Done" : "Mark done" %>
+										</button>
+										<button
+											type="button"
+											class="delete-planner-item"
+											data-planner-item-id="<%= item.id %>">
+											Remove
+										</button>
+									</div>
 								</div>
+
+								<details class="planner-edit-dropdown">
+									<summary><%= item.item_type == "event" ? "Edit notes" : "Edit notes and time" %></summary>
+
+									<form
+										class="planner-edit-form"
+										data-planner-item-id="<%= item.id %>"
+										data-item-type="<%= item.item_type %>"
+										data-hours-for-day="<%= item.hours_for_day %>"
+										data-hours-day="<%= item.hours_day %>">
+										<% unless item.item_type == "event" %>
+											<label>
+												<span>Start time</span>
+												<%= time_field_tag "planner_item_start_clock", date_only_flex_item.call(item) ? nil : item.start_time&.strftime("%H:%M"), class: "planner-edit-start", data: { date: (item.start_time || item.created_at).to_date.iso8601 } %>
+											</label>
+											<label>
+												<span>End time</span>
+												<%= time_field_tag "planner_item_end_clock", item.end_time&.strftime("%H:%M"), class: "planner-edit-end", data: { date: (item.start_time || item.created_at).to_date.iso8601 } %>
+											</label>
+										<% end %>
+										<% if item.item_type == "place" %>
+											<p class="planner-hours-warning" data-hours-warning aria-live="polite"></p>
+										<% end %>
+										<label class="planner-edit-wide">
+											<span>Notes</span>
+											<%= text_area_tag "planner_item[notes]", item.notes, rows: 3, class: "planner-edit-notes", placeholder: "Add timing details, tickets, parking, or anything you want to remember." %>
+										</label>
+										<div class="planner-edit-footer">
+											<span class="planner-edit-status" aria-live="polite"></span>
+											<button type="submit" class="planner-edit-save">Save changes</button>
+										</div>
+									</form>
+								</details>
 
 								<details class="planner-reminder-dropdown" <%= "open" if item.reminder_enabled? %>>
 									<summary>
@@ -68,12 +219,12 @@
 										<span class="planner-reminder-status"><%= item.reminder_label %></span>
 									</summary>
 
-									<form class="planner-reminder-form" data-planner-item-id="<%= item.id %>">
+									<form class="planner-reminder-form" data-planner-item-id="<%= item.id %>" data-start-time="<%= item.start_time&.iso8601 %>">
 										<%= hidden_field_tag "planner_item[reminder_enabled]", "0" %>
 
 										<label class="planner-reminder-toggle">
 											<%= check_box_tag "planner_item[reminder_enabled]", "1", item.reminder_enabled?, class: "planner-reminder-enabled" %>
-											<span>Send reminder</span>
+											<span>Set reminder</span>
 										</label>
 
 										<div class="planner-reminder-controls">
@@ -188,11 +339,236 @@
 								</details>
 							</article>
 						<% end %>
+
+						<% if flex_items.any? %>
+							<section class="planner-flex-section">
+								<div class="planner-flex-heading">
+									<div>
+										<p class="planner-day-kicker">Flexible Stops</p>
+										<h3>Drag to reorder</h3>
+									</div>
+									<span><%= pluralize(flex_items.size, "flex stop") %></span>
+								</div>
+
+								<div class="planner-flex-list" data-flex-list>
+									<% flex_items.each do |item| %>
+										<% website_url = safe_external_url(item.website) %>
+										<% google_url = safe_external_url(item.google_url) %>
+										<% ticketmaster_url = safe_external_url(item.ticketmaster_url) %>
+										<% reminder_location = item.location_name.presence || item.address %>
+										<% closed_for_day = item.item_type == "place" && item.hours_for_day.to_s.downcase.include?("closed") %>
+										<% completed = item.completed_at.present? %>
+
+										<article
+											class="planner-item planner-item-flex <%= "is-complete" if completed %>"
+											draggable="true"
+											data-flex-item
+											data-item-type="<%= item.item_type %>"
+											data-has-start-time="false"
+											data-item-title="<%= item.title %>"
+											data-position="<%= item.position %>"
+											data-planner-item-id="<%= item.id %>"
+											data-completed-at="<%= item.completed_at&.iso8601 %>"
+											data-hours-for-day="<%= item.hours_for_day %>"
+											data-hours-day="<%= item.hours_day %>"
+											data-reminder-item
+											data-reminder-at="<%= item.reminder_at&.iso8601 %>"
+											data-reminder-title="<%= item.title %>"
+											data-reminder-location="<%= reminder_location %>">
+											<div class="planner-item-main">
+												<div class="planner-item-rail">
+													<button type="button" class="planner-drag-handle" aria-label="Drag to reorder">
+														<span></span><span></span><span></span>
+													</button>
+													<span class="planner-item-line" aria-hidden="true"></span>
+												</div>
+
+												<div class="planner-item-copy">
+													<div class="planner-item-title-row">
+														<span class="planner-type-badge"><%= item.item_type.to_s.tr("_", " ").titleize %></span>
+														<h3><%= item.title %></h3>
+													</div>
+
+													<div class="planner-quick-meta">
+														<span data-time-meta>Flex stop</span>
+														<% if item.location_name.present? %>
+															<span><%= item.location_name %></span>
+														<% end %>
+														<% if item.category.present? %>
+															<span><%= item.category %></span>
+														<% end %>
+														<% if closed_for_day %>
+															<span class="planner-closed-pill">Closed for the day</span>
+														<% end %>
+														<% if completed %>
+															<span class="planner-complete-pill">Done</span>
+														<% end %>
+													</div>
+
+													<% if item.notes.present? %>
+														<p class="planner-item-note"><%= item.notes %></p>
+													<% end %>
+												</div>
+
+												<div class="planner-card-actions">
+													<button
+														type="button"
+														class="complete-planner-item"
+														data-complete-planner-item
+														data-planner-item-id="<%= item.id %>"
+														<%= "disabled" if completed %>>
+														<%= completed ? "Done" : "Mark done" %>
+													</button>
+													<button
+														type="button"
+														class="delete-planner-item"
+														data-planner-item-id="<%= item.id %>">
+														Remove
+													</button>
+												</div>
+											</div>
+
+											<details class="planner-edit-dropdown">
+												<summary><%= item.item_type == "event" ? "Edit notes" : "Edit notes and time" %></summary>
+
+												<form
+													class="planner-edit-form"
+													data-planner-item-id="<%= item.id %>"
+													data-item-type="<%= item.item_type %>"
+													data-hours-for-day="<%= item.hours_for_day %>"
+													data-hours-day="<%= item.hours_day %>">
+													<% unless item.item_type == "event" %>
+														<label>
+															<span>Start time</span>
+															<%= time_field_tag "planner_item_start_clock", date_only_flex_item.call(item) ? nil : item.start_time&.strftime("%H:%M"), class: "planner-edit-start", data: { date: (item.start_time || item.created_at).to_date.iso8601 } %>
+														</label>
+														<label>
+															<span>End time</span>
+															<%= time_field_tag "planner_item_end_clock", item.end_time&.strftime("%H:%M"), class: "planner-edit-end", data: { date: (item.start_time || item.created_at).to_date.iso8601 } %>
+														</label>
+													<% end %>
+													<% if item.item_type == "place" %>
+														<p class="planner-hours-warning" data-hours-warning aria-live="polite"></p>
+													<% end %>
+													<label class="planner-edit-wide">
+														<span>Notes</span>
+														<%= text_area_tag "planner_item[notes]", item.notes, rows: 3, class: "planner-edit-notes", placeholder: "Add timing details, tickets, parking, or anything you want to remember." %>
+													</label>
+													<div class="planner-edit-footer">
+														<span class="planner-edit-status" aria-live="polite"></span>
+														<button type="submit" class="planner-edit-save">Save changes</button>
+													</div>
+												</form>
+											</details>
+
+											<details class="planner-reminder-dropdown" <%= "open" if item.reminder_enabled? %>>
+												<summary>
+													<span>Notifications</span>
+													<span class="planner-reminder-status"><%= item.reminder_label %></span>
+												</summary>
+
+												<form class="planner-reminder-form" data-planner-item-id="<%= item.id %>" data-start-time="<%= item.start_time&.iso8601 %>">
+													<%= hidden_field_tag "planner_item[reminder_enabled]", "0" %>
+
+													<label class="planner-reminder-toggle">
+														<%= check_box_tag "planner_item[reminder_enabled]", "1", item.reminder_enabled?, class: "planner-reminder-enabled" %>
+														<span>Set reminder</span>
+													</label>
+
+													<div class="planner-reminder-controls">
+														<label>
+															<span>Custom time</span>
+															<%= datetime_field_tag(
+																"planner_item[reminder_at]",
+																item.reminder_at&.strftime("%Y-%m-%dT%H:%M"),
+																class: "planner-reminder-at"
+															) %>
+														</label>
+
+														<button type="submit" class="planner-reminder-save">Save</button>
+													</div>
+
+													<div class="planner-reminder-footer">
+														<button type="button" class="planner-browser-notifications">Browser notifications</button>
+													</div>
+												</form>
+											</details>
+
+											<details class="planner-item-details">
+												<summary>Details</summary>
+
+												<div class="planner-detail-grid">
+													<% if item.address.present? %>
+														<div class="planner-detail-row">
+															<span>Address</span>
+															<strong><%= item.address %></strong>
+														</div>
+													<% end %>
+
+													<% if item.category.present? %>
+														<div class="planner-detail-row">
+															<span>Category</span>
+															<strong><%= item.category %></strong>
+														</div>
+													<% end %>
+
+													<% if item.item_type == "place" %>
+														<% if item.rating.present? %>
+															<div class="planner-detail-row">
+																<span>Rating</span>
+																<strong><%= item.rating %></strong>
+															</div>
+														<% end %>
+
+														<% if item.hours_for_day.present? || closed_for_day %>
+															<div class="planner-detail-row">
+																<span>Hours</span>
+																<strong><%= closed_for_day ? "Closed for the day" : item.hours_for_day %></strong>
+															</div>
+														<% elsif item.hours_day.present? %>
+															<div class="planner-detail-row">
+																<span>Hours</span>
+																<strong><%= "#{item.hours_day} hours unavailable" %></strong>
+															</div>
+														<% end %>
+													<% end %>
+
+													<% if item.notes.present? %>
+														<div class="planner-detail-row planner-detail-row-wide">
+															<span>Notes</span>
+															<strong><%= item.notes %></strong>
+														</div>
+													<% end %>
+
+													<% if website_url.present? || google_url.present? || ticketmaster_url.present? %>
+														<div class="planner-links">
+															<% if website_url.present? %>
+																<%= link_to "Website", website_url, target: "_blank", rel: "noopener" %>
+															<% end %>
+															<% if google_url.present? %>
+																<%= link_to "Google listing", google_url, target: "_blank", rel: "noopener" %>
+															<% end %>
+															<% if ticketmaster_url.present? %>
+																<%= link_to "Ticketmaster", ticketmaster_url, target: "_blank", rel: "noopener" %>
+															<% end %>
+														</div>
+													<% end %>
+												</div>
+											</details>
+										</article>
+									<% end %>
+								</div>
+							</section>
+						<% end %>
 					</div>
 				</section>
 			<% end %>
 		</div>
 	<% else %>
-		<div class="planner-empty">No planner items saved yet.</div>
+		<div class="planner-empty" data-planner-empty>
+			<strong>No saved stops yet.</strong>
+			<p>Maps is where discovery starts. Save a place or event there, then come back here to edit the day.</p>
+			<%= link_to "Open Maps", maps_path, class: "planner-empty-action" %>
+		</div>
 	<% end %>
 </div>

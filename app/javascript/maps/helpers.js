@@ -40,6 +40,22 @@ export function fillDirectionsDestination(address) {
 	window.setTimeout(() => destination.focus(), 250);
 }
 
+export function fillDirectionsOrigin(address) {
+	const origin = document.getElementById("origin");
+	if (!origin || !address) return;
+
+	origin.value = address;
+	origin.dispatchEvent(new Event("input", { bubbles: true }));
+	origin.dispatchEvent(new Event("change", { bubbles: true }));
+
+	origin.closest(".maps-toolbar")?.scrollIntoView({
+		behavior: "smooth",
+		block: "center"
+	});
+
+	window.setTimeout(() => origin.focus(), 250);
+}
+
 export function bindDirectionAddressButtons(root = document) {
 	root.querySelectorAll(".maps-address-button").forEach(button => {
 		if (button.dataset.addressBound === "true") return;
@@ -49,6 +65,20 @@ export function bindDirectionAddressButtons(root = document) {
 			fillDirectionsDestination(button.dataset.address);
 		});
 	});
+}
+
+export function renderStateCard(title, message, action = null) {
+	const actionMarkup = action
+		? `<button type="button" class="maps-state-action" data-retry-scope="${escapeHtml(action.scope)}">${escapeHtml(action.label || "Retry")}</button>`
+		: "";
+
+	return `
+		<div class="maps-state-card">
+			<strong>${escapeHtml(title)}</strong>
+			<p>${escapeHtml(message)}</p>
+			${actionMarkup}
+		</div>
+	`;
 }
 
 export function groupByVenue(events) {
@@ -78,16 +108,31 @@ export function groupByVenue(events) {
 export function formatDate(date, endOfDay = false) {
 	if (!date) return null;
 
-	const parsed = new Date(date);
-	if (isNaN(parsed)) return null;
+	return `${date}T${endOfDay ? "23:59:59" : "00:00:00"}`;
+}
 
-	parsed.setUTCHours(
-		endOfDay ? 23 : 0,
-		endOfDay ? 59 : 0,
-		endOfDay ? 59 : 0
-	);
+export function formatCalendarDate(date) {
+	if (!date) return "Date unavailable";
 
-	return `${parsed.toISOString().split(".")[0]}Z`;
+	const match = String(date).match(/^(\d{4})-(\d{2})-(\d{2})$/);
+	if (!match) return date;
+
+	const localDate = new Date(Number(match[1]), Number(match[2]) - 1, Number(match[3]));
+	return localDate.toLocaleDateString([], {
+		month: "short",
+		day: "numeric",
+		year: "numeric"
+	});
+}
+
+export function plannerDateTime(date, time = "", fallbackTime = "00:00:00") {
+	if (!date) return null;
+
+	const normalizedTime = time
+		? (time.length === 5 ? `${time}:00` : time)
+		: fallbackTime;
+
+	return `${date}T${normalizedTime}`;
 }
 
 export function formatEventTime(time) {

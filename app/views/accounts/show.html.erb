@@ -1,0 +1,62 @@
+<main class="auth-page account-page">
+  <section class="auth-card account-card account-card-wide">
+    <div class="auth-card-header">
+      <p class="auth-kicker">Account</p>
+      <h1>Account information</h1>
+      <p>Signed in as <strong><%= current_user.email %></strong>.</p>
+    </div>
+
+    <section class="account-section">
+      <div class="account-section-heading">
+        <h2>Nickname</h2>
+        <p>This is shown in the account menu.</p>
+      </div>
+
+      <p class="account-current-value">Current display name: <strong><%= current_user.display_name %></strong></p>
+
+      <%= form_with scope: :user, url: account_profile_path, method: :patch, class: "auth-form" do |f| %>
+        <div class="auth-field">
+          <%= f.label :nickname, "Nickname" %>
+          <%= f.text_field(
+                :nickname,
+                value: current_user.nickname,
+                maxlength: 40,
+                autocomplete: "nickname",
+                placeholder: "What should we call you?"
+              ) %>
+          <span class="auth-hint">Leave it blank to use your name or email.</span>
+        </div>
+
+        <%= f.submit "Save nickname", class: "auth-submit account-inline-submit" %>
+      <% end %>
+    </section>
+
+    <section class="account-section">
+      <div class="account-section-heading">
+        <h2>Home address</h2>
+        <p>Maps will use this as your default start location.</p>
+      </div>
+
+      <p class="account-current-value">Current default: <strong><%= current_user.default_home_address %></strong></p>
+
+      <%= form_with scope: :user, url: account_home_address_path, method: :patch, class: "auth-form", data: { turbo: false } do |f| %>
+        <div class="auth-field">
+          <%= f.label :home_address, "Default start address" %>
+          <%= f.text_field(
+                :home_address,
+                value: current_user.default_home_address,
+                autocomplete: "street-address",
+                placeholder: "Start typing your home address",
+                data: {
+                  account_home_address: true,
+                  google_maps_api_key: ENV["GOOGLE_API_KEY"]
+                }
+              ) %>
+          <span class="auth-hint">Choose a suggested address when it appears.</span>
+        </div>
+
+        <%= f.submit "Save home address", class: "auth-submit account-inline-submit" %>
+      <% end %>
+    </section>
+  </section>
+</main>

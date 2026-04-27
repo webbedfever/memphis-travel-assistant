@@ -1,3 +1,5 @@
+@import "ui_helpers";
+
 // --------------------------
 // Maps
 // --------------------------
@@ -95,10 +97,7 @@
 }
 
 .maps-surface {
-  border: 1px solid #dbe3ea;
-  border-radius: 18px;
-  background: #ffffff;
-  box-shadow: 0 12px 34px rgba(23, 32, 51, 0.06);
+  @include app-surface;
 }
 
 .maps-toolbar-panel,
@@ -139,56 +138,67 @@
   padding: 0;
 }
 
+.maps-filter-shortcuts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.maps-filter-chip {
+  min-height: 38px;
+  padding: 8px 14px;
+  border-radius: 999px;
+  border: 1px solid #cfe1de;
+  background: #f5fbfa;
+  color: #0f766e;
+  font-size: 0.88rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.maps-filter-chip:hover,
+.maps-filter-chip:focus-visible {
+  border-color: #0f766e;
+  background: #e8f5f3;
+  color: #0b5c56;
+}
+
 .maps-toolbar input,
 .maps-toolbar select,
 .maps-filters input,
 .maps-filters select {
   flex: 1 1 180px;
   min-width: 180px;
-  min-height: 44px;
-  padding: 10px 13px;
-  border-radius: 10px;
-  border: 1px solid #dbe3ea;
-  background: #fbfdff;
-  color: #233044;
+  @include app-form-control;
 }
 
 .maps-toolbar input:focus,
 .maps-toolbar select:focus,
 .maps-filters input:focus,
 .maps-filters select:focus {
-  border-color: #0f766e;
-  box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.14);
-  outline: none;
+  @include app-focus-ring;
 }
 
-.maps-action-button,
+.maps-secondary-button,
 .maps-toggle-button,
 .maps-reset-button {
-  min-height: 44px;
-  border-radius: 10px;
-  padding: 10px 16px;
-  font-weight: 700;
-  line-height: 1;
+  @include app-button-base;
 }
 
 .maps-action-button {
-  border: 1px solid #0f766e;
-  background: #0f766e;
-  color: #ffffff;
+  @include app-primary-button;
 }
 
 .maps-action-button:hover,
 .maps-action-button:focus-visible {
-  background: #115e59;
-  border-color: #115e59;
+  @include app-primary-button-hover;
 }
 
 .maps-toggle-button,
+.maps-secondary-button,
 .maps-reset-button {
-  border: 1px solid #cfd8e3;
-  background: #ffffff;
-  color: #4d5d70;
+  @include app-secondary-button;
 }
 
 .maps-toggle-button[aria-pressed="true"] {
@@ -199,10 +209,190 @@
 
 .maps-reset-button:hover,
 .maps-reset-button:focus-visible,
+.maps-secondary-button:hover,
+.maps-secondary-button:focus-visible,
 .maps-toggle-button:hover,
 .maps-toggle-button:focus-visible {
-  border-color: #0f766e;
+  @include app-secondary-button-hover;
+}
+
+.maps-route-summary {
+  margin-top: 14px;
+  padding: 14px 16px;
+  border: 1px solid #dbe3ea;
+  border-radius: 14px;
+  background: linear-gradient(180deg, #fcfefd 0%, #f5fbf8 100%);
+}
+
+.maps-route-summary strong {
+  display: block;
+  margin-bottom: 6px;
+  color: #1e2a3d;
+  font-size: 0.96rem;
+}
+
+.maps-route-summary p {
+  margin: 0;
+  color: #536274;
+  font-size: 0.92rem;
+  line-height: 1.5;
+}
+
+.maps-route-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 10px 0 0;
+}
+
+.maps-route-meta span {
+  padding: 6px 9px;
+  border-radius: 999px;
+  background: #ffffff;
+  border: 1px solid #d9e8e2;
+  color: #30544b;
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.maps-route-summary.is-error {
+  border-color: #f0d4d4;
+  background: linear-gradient(180deg, #fffafa 0%, #fff3f3 100%);
+}
+
+.maps-route-summary.is-error strong,
+.maps-route-summary.is-error p {
+  color: #8a2d2d;
+}
+
+.maps-route-placeholder {
+  color: #6a798b;
+}
+
+.maps-filter-status {
+  min-height: 1.25rem;
+  margin: 12px 2px 0;
+  color: #5d6b7d;
+  font-size: 0.9rem;
+  line-height: 1.4;
+}
+
+.maps-marker-window {
+  max-width: 280px;
+  padding: 2px 0;
+}
+
+.maps-marker-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.maps-marker-heading strong {
+  color: #1f2c3f;
+  font-size: 0.95rem;
+  line-height: 1.35;
+}
+
+.maps-marker-heading span,
+.maps-marker-meta span {
+  display: inline-flex;
+  align-items: center;
+  padding: 5px 8px;
+  border-radius: 999px;
+  background: #f3f7fb;
+  color: #526173;
+  font-size: 0.76rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.maps-marker-address {
+  margin: 0 0 10px;
+  color: #607084;
+  font-size: 0.85rem;
+  line-height: 1.45;
+}
+
+.maps-marker-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.maps-marker-actions,
+.maps-marker-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.maps-marker-actions {
+  margin-bottom: 10px;
+}
+
+.maps-marker-action,
+.maps-marker-links a {
+  border: 1px solid #d6e4df;
+  border-radius: 999px;
+  background: #eef7f6;
   color: #0f766e;
+  padding: 6px 10px;
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 700;
+  line-height: 1;
+  text-decoration: none;
+}
+
+.maps-marker-action:hover,
+.maps-marker-action:focus-visible,
+.maps-marker-links a:hover,
+.maps-marker-links a:focus-visible {
+  background: #0f766e;
+  border-color: #0f766e;
+  color: #ffffff;
+}
+
+.maps-marker-list {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.maps-marker-list-item {
+  display: grid;
+  gap: 3px;
+  padding-top: 8px;
+  border-top: 1px solid #edf2f6;
+}
+
+.maps-marker-list-item strong {
+  color: #223043;
+  font-size: 0.86rem;
+}
+
+.maps-marker-list-item span {
+  color: #66768a;
+  font-size: 0.8rem;
+}
+
+.maps-marker-list-item a {
+  width: fit-content;
+  color: #0f766e;
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.maps-marker-list-item a:hover,
+.maps-marker-list-item a:focus-visible {
+  text-decoration: underline;
 }
 
 .maps-canvas {
@@ -262,6 +452,37 @@
   flex: 1;
   overflow-y: auto;
   padding: 14px;
+}
+
+.maps-state-card {
+  display: grid;
+  gap: 8px;
+  padding: 18px;
+  border: 1px dashed #cfdbe5;
+  border-radius: 14px;
+  background: linear-gradient(180deg, #fbfdff 0%, #f6f9fc 100%);
+}
+
+.maps-state-card strong {
+  color: #223043;
+  font-size: 0.96rem;
+}
+
+.maps-state-card p {
+  margin: 0;
+  color: #607084;
+  line-height: 1.5;
+}
+
+.maps-state-action {
+  width: fit-content;
+  @include app-soft-action-button(999px, 750, 8px 12px);
+  min-height: 36px;
+}
+
+.maps-state-action:hover,
+.maps-state-action:focus-visible {
+  @include app-soft-action-hover;
 }
 
 .maps-group-card {
@@ -371,6 +592,37 @@
   color: #ffffff;
 }
 
+.maps-save-controls {
+  display: grid;
+  justify-items: end;
+  gap: 8px;
+  flex: 0 0 auto;
+}
+
+.maps-date-choice {
+  display: grid;
+  gap: 4px;
+  min-width: 132px;
+}
+
+.maps-date-choice span {
+  color: #65758a;
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.maps-date-choice select {
+  min-height: 34px;
+  border: 1px solid #dbe3ea;
+  border-radius: 8px;
+  background: #fbfdff;
+  color: #233044;
+  padding: 6px 8px;
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
 .planner-inline-action {
   flex: 0 0 auto;
   border: 1px solid #cfd8e3;
@@ -423,6 +675,7 @@
   .maps-filters input,
   .maps-filters select,
   .maps-action-button,
+  .maps-secondary-button,
   .maps-toggle-button,
   .maps-reset-button {
     width: 100%;

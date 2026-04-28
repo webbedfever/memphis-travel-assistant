@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-class WeatherRecommendationService
+class WeatherPlaceRecommender
   def self.call(temp_f:, condition:)
     condition = condition.to_s.downcase
 

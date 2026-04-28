@@ -23,14 +23,14 @@
 #  index_users_on_reset_password_token  (reset_password_token) UNIQUE
 #
 class User < ApplicationRecord
-  DEFAULT_HOME_ADDRESS = "Beale Street, Memphis, TN".freeze
+  DEFAULT_HOME_ADDRESS = 'Beale Street, Memphis, TN'
 
   # Include default devise modules. Others available are:
   # :confirmable, :lockable, :timeoutable, :trackable and :omniauthable
   has_many :planner_items, dependent: :destroy
-  
+
   devise :database_authenticatable, :registerable,
-         :recoverable, :rememberable, :validatable
+         :recoverable, :rememberable, :validatable, :timeoutable
 
   validates :nickname, length: { maximum: 40 }, allow_blank: true
 
@@ -40,7 +40,7 @@ class User < ApplicationRecord
 
   def display_name
     nickname.presence ||
-      [first_name, last_name].compact_blank.join(" ").presence ||
+      [first_name, last_name].compact_blank.join(' ').presence ||
       email
   end
 end

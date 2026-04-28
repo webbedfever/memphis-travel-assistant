@@ -7,9 +7,9 @@ Rails.application.routes.draw do
   root 'home#index'
 
   get '/dashboard', to: 'dashboard#index'
-  get "/account", to: "accounts#show"
-  patch "/account/profile", to: "accounts#update_profile", as: :account_profile
-  patch "/account/home_address", to: "accounts#update_home_address", as: :account_home_address
+  get '/account', to: 'accounts#show'
+  patch '/account/profile', to: 'accounts#update_profile', as: :account_profile
+  patch '/account/home_address', to: 'accounts#update_home_address', as: :account_home_address
 
   get 'up' => 'rails/health#show', as: :rails_health_check
 
@@ -20,6 +20,6 @@ Rails.application.routes.draw do
   get '/places', to: 'maps#places'
   get '/directions', to: 'maps#directions'
 
-  get "/planner", to: "planner_items#index"
-  resources :planner_items, only: [:index, :create, :update, :destroy]
+  get '/planner', to: 'planner_items#index'
+  resources :planner_items, only: %i[index create update destroy]
 end

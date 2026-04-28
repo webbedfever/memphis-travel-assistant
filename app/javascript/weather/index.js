@@ -167,6 +167,64 @@ function buildPrepSuggestions(focus) {
 	return suggestions;
 }
 
+function buildActivitySuggestions(focus) {
+	const temperature = Number(focus.temperature ?? focus.max_temperature ?? 0);
+	const precipitation = Number(focus.precipitation_probability || 0);
+	const thunderstorm = Number(focus.thunderstorm_probability || 0);
+	const uvIndex = Number(focus.uv_index || 0);
+	const windSpeed = Number(focus.wind_speed || 0);
+	const condition = `${focus.condition_type || ""} ${focus.condition_text || ""}`.toLowerCase();
+	const focusTime = focus.starts_at || new Date().toISOString();
+
+	if (precipitation >= 40 || thunderstorm >= 20 || condition.includes("rain") || condition.includes("storm")) {
+		return [{
+			key: "civil-rights-museum",
+			title: "Visit the National Civil Rights Museum",
+			description: "Rain or storm risk makes this a better indoor pick.",
+			startTime: focusTime
+		}];
+	}
+
+	if (temperature >= 95) {
+		return [{
+			key: "brooks-museum-hot",
+			title: "Visit the Memphis Brooks Museum of Art",
+			description: "It is very hot outside, so choose an indoor activity.",
+			startTime: focusTime
+		}];
+	}
+
+	if (temperature >= 65 && temperature <= 85 && (condition.includes("sun") || condition.includes("clear"))) {
+		return [{
+			key: "shelby-farms",
+			title: "Go to Shelby Farms Park",
+			description: "Clear, comfortable weather is great for outdoor plans.",
+			startTime: focusTime
+		}];
+	}
+
+	if (temperature <= 45 || windSpeed >= 15) {
+		return [{
+			key: "crosstown-concourse",
+			title: "Go to Crosstown Concourse",
+			description: "Cold or windy weather makes indoor plans more comfortable.",
+			startTime: focusTime
+		}];
+	}
+
+	return [{
+		key: "beale-street",
+		title: "Walk around Beale Street",
+		description: "Weather looks manageable for a flexible Memphis outing.",
+		startTime: focusTime
+	}];
+}
+
+
+
+
+
+
 class WeatherPage {
 	constructor(root) {
 		this.root = root;
@@ -289,8 +347,10 @@ class WeatherPage {
 	renderForecastAndSuggestions() {
 		const forecastItems = this.filteredForecastItems();
 		const focusItem = this.focusItem(forecastItems);
-		const suggestions = buildPrepSuggestions(focusItem || this.data.current || {});
-
+		const suggestions = [
+			...buildPrepSuggestions(focusItem || this.data.current || {}),
+			...buildActivitySuggestions(focusItem || this.data.current || {})
+		];
 		this.forecastSummary.textContent = `${forecastItems.length} item${forecastItems.length === 1 ? "" : "s"} shown`;
 		this.suggestionFocus.textContent = focusItem
 			? `Based on ${focusItem.weekday_label || ""} ${focusItem.time_label || ""}`.trim()

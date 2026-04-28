@@ -119,9 +119,9 @@ gem 'rubocop-rspec_rails', require: false, group: %i[development test]
 gem 'erb_lint', require: false, group: %i[development test]
 gem 'htmlbeautifier', require: false, group: %i[development test]
 
-gem "google_maps_service", "~> 0.4.2"
+gem 'dotenv-rails', groups: %i[development test]
+gem 'google_maps_service', '~> 0.4.2'
 gem 'httparty'
-gem 'dotenv-rails', groups: [:development, :test]
 group :development do
-  gem "letter_opener"
+  gem 'letter_opener'
 end

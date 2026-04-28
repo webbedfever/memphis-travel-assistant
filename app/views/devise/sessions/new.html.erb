@@ -33,6 +33,9 @@
 
       <%= f.submit "Log in", class: "auth-submit" %>
     <% end %>
+    <p>
+  <%= link_to "Forgot your password?", new_user_password_path %>
+</p>
 
     <div class="auth-secondary">
       <p>New here? <%= link_to "Create an account", new_user_registration_path, class: "auth-link" %></p>

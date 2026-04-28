@@ -79,4 +79,6 @@ test:
 #
 production:
   <<: *default
-  url: <%= ENV["DATABASE_URL"] %>
+  database: project_template_production
+  username: project_template
+  password: <%= ENV["PROJECT_TEMPLATE_DATABASE_PASSWORD"] %>

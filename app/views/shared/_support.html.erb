@@ -1,0 +1,45 @@
+<div class="support-bar">
+  <div class="tooltip-wrapper">
+    <ul class="tooltip-container">
+      <li class="nav-link">
+        <div class="tooltip-tab">
+          <svg xmlns="http://www.w3.org/2000/svg" height="16" viewBox="0 0 24 24" fill="white"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-2h2v2zm2.07-7.75l-.9.92C13.45 12.9 13 13.5 13 15h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H8c0-2.21 1.79-4 4-4s4 1.79 4 4c0 .88-.36 1.68-.93 2.25z"/></svg>
+          Need Help?
+        </div>
+        <ul class="tooltip tooltip-menu-with-icon">
+          <li class="tooltip-link contact-link">
+            <a href="mailto:support@memphistravel.com" class="tooltip-links">
+              <svg xmlns="http://www.w3.org/2000/svg" height="20" viewBox="0 0 24 24" fill="white"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>
+              Contact Us
+            </a>
+            <div class="contact-email-popup" id="email-popup" onclick="copyEmail()">
+              support@memphistravel.com
+            </div>
+          </li>
+          <li class="tooltip-link">
+            <a href="/faq" class="tooltip-links">
+              <svg xmlns="http://www.w3.org/2000/svg" height="20" viewBox="0 0 24 24" fill="white"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-2h2v2zm2.07-7.75l-.9.92C13.45 12.9 13 13.5 13 15h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H8c0-2.21 1.79-4 4-4s4 1.79 4 4c0 .88-.36 1.68-.93 2.25z"/></svg>
+              FAQs
+            </a>
+          </li>
+          <li class="tooltip-link">
+            <a href="/maps" class="tooltip-links">
+              <svg xmlns="http://www.w3.org/2000/svg" height="20" viewBox="0 0 24 24" fill="white"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5S10.62 6.5 12 6.5s2.5 1.12 2.5 2.5S13.38 11.5 12 11.5z"/></svg>
+              Explore the Map
+            </a>
+          </li>
+        </ul>
+      </li>
+    </ul>
+  </div>
+</div>
+
+<script>
+function copyEmail() {
+  navigator.clipboard.writeText("support@memphistravel.com")
+  const popup = document.getElementById("email-popup")
+  const original = popup.innerText
+  popup.innerText = "Copied!"
+  setTimeout(() => popup.innerText = original, 1500)
+}
+</script>

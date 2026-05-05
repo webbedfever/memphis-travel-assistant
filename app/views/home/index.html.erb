@@ -1,6 +1,6 @@
 <main class="home-page">
   <section class="home-hero">
-    <div class="home-hero-copy">
+    <div class="home-hero-copy" style="background-image: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url('<%= asset_path('memphis_background.jpg') %>'); background-size: cover; background-position: center;">
       <p class="home-eyebrow">Memphis Travel Assistant</p>
       <h1>Plan a better Memphis day.</h1>
       <p class="home-lede">
@@ -11,29 +11,29 @@
         <%= link_to "View Dashboard", dashboard_path, class: "home-secondary-action" %>
       </div>
     </div>
+  </section>
 
-    <div class="home-trip-panel" aria-label="Planning overview">
-      <div class="home-panel-heading">
-        <span>How it helps</span>
-        <strong>Your trip, organized</strong>
-      </div>
-
-      <div class="home-overview-list">
-        <div class="home-overview-item">
-          <span>1</span>
-          <strong>Open Maps to discover stops.</strong>
-        </div>
-
-        <div class="home-overview-item">
-          <span>2</span>
-          <strong>Save the places and events worth keeping.</strong>
-        </div>
-
-        <div class="home-overview-item">
-          <span>3</span>
-          <strong>Edit the plan, then use Dashboard as command center.</strong>
-        </div>
-      </div>
+  <%# Grizzlies %>
+  <section class="home-attraction">
+    <div class="home-attraction-img" style="background-image: url('<%= asset_path('fedex_forum.jpg') %>');"></div>
+    <div class="home-attraction-body">
+      <p class="home-attraction-eyebrow">Sports & Entertainment</p>
+      <h2>Memphis Grizzlies at FedEx Forum</h2>
+      <p>Experience the energy of NBA basketball in the heart of downtown Memphis. The FedEx Forum is one of the premier arenas in the country, hosting Memphis Grizzlies games, concerts, and major events year-round.</p>
+      <a href="/maps" class="home-attraction-link">Plan your visit →</a>
     </div>
   </section>
+
+  <%# Zoo %>
+  <section class="home-attraction home-attraction--reverse">
+    <div class="home-attraction-img" style="background-image: url('<%= asset_path('memphis_zoo.jpg') %>');"></div>
+    <div class="home-attraction-body">
+      <p class="home-attraction-eyebrow">Family & Nature</p>
+      <h2>Memphis Zoo</h2>
+      <p>One of the top-ranked zoos in the nation, the Memphis Zoo is home to more than 3,500 animals across 500 species. A perfect destination for families, nature lovers, and anyone looking to spend a day outdoors.</p>
+      <a href="/maps" class="home-attraction-link">Plan your visit →</a>
+    </div>
+  </section>
+
+  <%= render 'shared/support' %>
 </main>

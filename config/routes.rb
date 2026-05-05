@@ -20,6 +20,8 @@ Rails.application.routes.draw do
   get '/places', to: 'maps#places'
   get '/directions', to: 'maps#directions'
 
+  get '/faq', to: 'pages#faq'
+
   get '/planner', to: 'planner_items#index'
   resources :planner_items, only: %i[index create update destroy]
 end

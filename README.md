@@ -1,112 +1,54 @@
-# Team MTA
+# Memphis Travel Assistant (MTA)
 
-## Team Members
+A Ruby on Rails web app that helps tourists decide what to do in Memphis. MTA combines live event listings, weather forecasts, and maps so visitors can find events, plan around the weather, and get directions in one place.
 
-- Alarafat Hossain (@hzkira)
-- Carlos Payvon
-- Dylan Stubbs
-- Heba Saleh
-  
-## Sprint Goals for M2
+<!-- Add 2–3 screenshots here: the landing page, the events feed, and the planner/dashboard. -->
+<!-- ![Landing page](docs/screenshots/landing.png) -->
 
-### WEATHER:
--Fetch and display current weather for the user’s location
--Display weather using simple visuals/icons (e.g., sun, rain, clouds)
--Allow users to view weather for a selected date/time (within API limits, e.g., up to ~1–2 weeks)
--Show key weather details: temperature, condition, and precipitation (if available)
--Ensure weather data is formatted consistently for use in the recommendation system
--When the user inputs a location/destination--->  directions, distance and estimated travel time is given
+## Features
 
-### PLANNER:
--Allow users to create, edit, and delete planner items (events/activities)
--For logged-in users, store planner data in the backend (database) so it persists across sessions
--For guest users, automatically save planner data in localStorage (no manual save required)
--Allow users to set a date and time for each planner item
--Allow users to add events directly from the Ticketmaster API into the planner
--Provide an option to enable reminders/notifications for planner items 
+- **Event discovery:** Browse popular upcoming Memphis events from the Ticketmaster API and go straight to each event's Ticketmaster page to buy tickets.
+- **Weather-aware planning:** Daily and weekly forecasts, with suggestions for which events to attend and what to wear.
+- **Maps and directions:** See how far an event is from your location and get directions with Google Maps, without leaving the app.
+- **Personal planner:** Save events to a dashboard and get reminders such as "purchase tickets" or "event is in 2 weeks" by SMS or email.
+- **User accounts:** Sign up and log in with Devise.
 
-### FRONTEND/UI UX
-Maintain consistent styling across all pages (colors, fonts, spacing, components,etc)
--Ensure a smooth user experience for both guest and logged-in users
--Review implemented features and suggest UI/UX improvements
+## Tech Stack
 
-### TICKETMASTER IMPLEMENATION
--Fetch events from the Ticketmaster API based on user location
--Allow users to filter events by date and/or time
--Display events in a clear, consistent format (name, date, time, location)
--Handle cases where no events are found 
--Provide a way for users to add events to their planner
+| Layer | Technologies |
+|---|---|
+| Backend | Ruby 3.3.6, Ruby on Rails, PostgreSQL, Devise |
+| Frontend | HTML, CSS, JavaScript, Bootstrap 5, Bootswatch |
+| APIs | Ticketmaster Discovery API, Google Maps API, Google Weather API |
 
-### LOGIN SIGNUP FLOW:
--Set up authentication using Devise for user sign-up, login, and logout
--Integrate OAuth  (Google) to allow users to log in with Gmail
--Handle basic validation and errors such as invalid login, missing fields, and duplicate accounts
--Restrict certain* features to authenticated users only
+## My Role (Carlos Pavon)
 
-### MAP:
--Allow users to input a location or destination
--Display directions, distance, and estimated travel time using the Maps API
--Show nearby points of interest or relevant locations 
--Ensure location data (coordinates, distance, etc.) is structured for reuse (recommendations, events)
+I was responsible for **frontend development** and the **Ticketmaster API integration**.
 
-### SUGGESTIONS/RECOMMENDATIONS:
--Create a way for the website to give suggestions based on the current weather for logged-in users
--Use Maps to provide proximity-based recommendations for logged-in users
--Provide recommendationsfor nearby events for logged-in users
+- Built the landing page: image-based quick links to popular Memphis attractions and events (for example, Memphis Grizzlies games at FedEx Forum and the Memphis Zoo) that route users to venue pages or specific Ticketmaster event listings, plus the About Us and Contact Us pages.
+- Worked on the Ticketmaster API integration and with teammates on adding Ticketmaster events to the planner.
+- Helped keep styling consistent across pages (colors, fonts, spacing, components).
 
-### Assigned Tasks
-Alarafat : Responsible for Map and Planner Feature
-Carlos : Responsible for Frontend development and Ticketmaster API implementation
-Dylan : Responsible for Weather API and Ticketmaster API implementation 
-Heba : Responsible for login/database and suggestions
+## Team
 
+Originally built as a four-person team project at the University of Memphis.
 
-Carlos, AL, and Dylan will be working together to make sure that events from Ticketmaster API can be added to the planner.
+- **Alarafat Hossain** – Maps and planner
+- **Carlos Pavon** – Frontend development and Ticketmaster API
+- **Dylan Stubbs** – Weather API and Ticketmaster API
+- **Heba Saleh** – Login, database, and suggestions
 
+## Running Locally
 
-Heba will be working with all members to ensure the suggestion system is consistent with the data they obtain.
+**Prerequisites:** Ruby 3.3.6, Bundler, PostgreSQL, Node.js
 
+```bash
+bundle install          # install gems
+rails db:migrate:reset  # create and initialize the database
+rails db:seed           # load seed data (none included by default)
+rails server            # start the development server
+```
 
-All members will focus on debugging and improving their own features, but the roles are not entirely strict. Members can help each other with bugs and additions, as long as it doesn’t take time away from their own work.
+Then open <http://localhost:3000>.
 
-
-
-## How to Initialize and Run the App
-
-### Prerequisites
-
-See [Rails Demos-n-Deets](https://rails-demos-n-deets-2023.herokuapp.com/demos/development-environment) for setup instructions.
-
-- **Mise** is assumed.
-- **Ruby version 3.3.6** is required.
-- **Bundler** is required.
-- **PostgreSQL** is required.
-- **NodeJS** is required.
-
-### Initializing the App
-
-- `bundle install` - Install all the necessary gems.
-- `rails db:migrate:reset` - Reset and initialize the database.
-- `rails db:seed` - Save seed data to the database (see `db/seeds.rb`).
-  - No seed data is included in the base app.
-
-### Running the App
-
-- `rails server` - Run the development web server.
-- Open <http://localhost:3000/> in the browser to launch the app (root page).
-
-## Included with the Base App
-
-- **[Devise](https://github.com/heartcombo/devise#readme)**
-  - A Devise `User` class has been generated (see `app/model/user.rb`).
-  - The Devise view templates have been added (see `app/views/devise/`).
-- **[Bootstrap v5.2.3](https://getbootstrap.com/docs/5.2/getting-started/introduction/)**
-- **[Bootswatch v5.2.3](https://bootswatch.com/)**
-  - A list of Bootswatch themes can be found [here](https://bootswatch.com/).
-  - The [Yeti theme](https://bootswatch.com/yeti/) is set by default (see `app/assets/stylesheets/application.scss`).
-- **Flash Notifications**
-  - Implemented as per the [Rails Demos-n-Deets](https://rails-demos-n-deets-2023.herokuapp.com/deets/flash-notifications).
-
-## Additional Dependencies
-
-- xxx
+You'll need your own API keys for Ticketmaster, Google Maps, and Google Weather to use the event, map, and weather features.
